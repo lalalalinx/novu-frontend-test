@@ -45,7 +45,7 @@ const apiList = [
   //apiForTriggerDigest post-01
   {
     name: "Trigger Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่แมว'}",
-    description: "ส่ง digest notification workflow (in-demo-app-digest)",
+    description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
     endpoint: "/api/trigger",
     method: "POST",
     body: {
@@ -60,7 +60,7 @@ const apiList = [
   },
   {
     name: "Trigger Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่ปลา'}",
-    description: "ส่ง digest notification workflow (in-demo-app-digest)",
+    description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
     endpoint: "/api/trigger",
     method: "POST",
     body: {
@@ -76,7 +76,7 @@ const apiList = [
   //apiForTriggerDigest post-02
   {
     name: "Trigger Digest Workflow {title: 'แชร์โพสต์' by 'พี่นก'}",
-    description: "ส่ง digest notification workflow (in-demo-app-digest)",
+    description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
     endpoint: "/api/trigger",
     method: "POST",
     body: {
@@ -90,7 +90,7 @@ const apiList = [
   },
   {
     name: "Trigger Digest Workflow {title: 'แชร์โพสต์' by 'พี่ต่าย'}",
-    description: "ส่ง digest notification workflow (in-demo-app-digest)",
+    description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
     endpoint: "/api/trigger",
     method: "POST",
     body: {
@@ -100,6 +100,18 @@ const apiList = [
         name: "พี่ต่าย",
         imgLink: "https://miro.medium.com/v2/resize:fit:1400/1*lWaZtVU68iEnua9JgVt1GQ.jpeg",
       },
+    },
+  },
+
+  //throttled to avoid too many APIs
+  {
+    name: "Trigger Throttled",
+    description: "จำกัดความถี่ในการส่ง notification ซ้ำๆ / Throttle = ซ้ำแล้วไม่ส่งถี่ (in-demo-app-throttle)",
+    endpoint: "/api/trigger",
+    method: "POST",
+    body: {
+      workflowId: "in-app-demo-throttle",
+      payload: {},
     },
   },
 

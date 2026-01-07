@@ -10,7 +10,38 @@ import { Inbox, Bell, NovuProvider, useNotifications, Notifications, InboxConten
 import { dark } from "@novu/react/themes";
 import { Archive, Check } from "lucide-react";
 import "./globals.css";
-const tagsHaveTalkIcon = ["social", "idk"];
+
+const tagsMap: {
+  [key: string]: {
+    icon: string;
+    tags: string[];
+    subjectTextStyle?: string;
+    contentTextStyle?: string;
+  };
+} = {
+  talkCloud: {
+    icon: "💬",
+    tags: ["social", "chat", "message"],
+  },
+  siren: {
+    icon: "🚨",
+    tags: ["bug"],
+    subjectTextStyle: "text-red-200",
+    contentTextStyle: "text-white-100",
+  },
+  information: {
+    icon: "ℹ️",
+    tags: ["info", "information"],
+  },
+  warning: {
+    icon: "⚠️",
+    tags: ["warning", "alert"],
+  },
+  success: {
+    icon: "✅",
+    tags: ["success", "done", "completed"],
+  },
+};
 
 function BellComponent({ unreadCount }: { unreadCount?: number }) {
   const hasUnread = typeof unreadCount === "number" && unreadCount > 0;
@@ -63,10 +94,25 @@ function InboxWithBell() {
         }}
         renderSubject={(notification: any) => {
           console.log("📝 notification.tags:", notification.tags);
-          const hasTitle = notification.tags?.some((tag: string) => tagsHaveTalkIcon.includes(tag));
+
+          // Find matching icon and style from tagsMap
+          let iconToShow = "";
+          let subjectStyle = "text-pink-500";
+          if (notification.tags) {
+            for (const key in tagsMap) {
+              const hasMatch = notification.tags.some((tag: string) => tagsMap[key].tags.includes(tag));
+              if (hasMatch) {
+                iconToShow = tagsMap[key].icon;
+                if (tagsMap[key].subjectTextStyle) {
+                  subjectStyle = tagsMap[key].subjectTextStyle!;
+                }
+                break;
+              }
+            }
+          }
           return (
-            <strong className="text-pink-500">
-              {hasTitle && "💬 "}
+            <strong className={subjectStyle}>
+              {iconToShow && `${iconToShow} `}
               {notification.subject.toUpperCase()}
             </strong>
           );
@@ -79,9 +125,26 @@ function InboxWithBell() {
 
           const imageLink = (notification.body || "").split("{image link:")[1]?.split("}")[0]?.trim();
 
+          // Find matching content style from tagsMap
+          let contentStyle = "";
+          if (notification.tags) {
+            for (const key in tagsMap) {
+              const hasMatch = notification.tags.some((tag: string) => tagsMap[key].tags.includes(tag));
+              if (hasMatch && tagsMap[key].contentTextStyle) {
+                contentStyle = tagsMap[key].contentTextStyle!;
+                break;
+              }
+            }
+          }
+
           return (
             <div>
-              <p style={{ whiteSpace: "pre-line" }}>{bodyText}</p>
+              <p
+                style={{ whiteSpace: "pre-line" }}
+                className={contentStyle}
+              >
+                {bodyText}
+              </p>
               {notification?.tags?.includes("image") && imageLink && (
                 <div className="flex justify-center mt-2">
                   <img
