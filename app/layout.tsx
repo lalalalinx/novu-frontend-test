@@ -16,9 +16,11 @@ function BellComponent({ unreadCount }: { unreadCount?: number }) {
   console.log("BellComponent RENDER - unreadCount:", unreadCount, "hasUnread:", hasUnread, "timestamp:", new Date().toISOString());
 
   return (
-    <div className={`px-4 py-2 text-sm inline-flex items-center gap-2 rounded-lg transition-colors ${hasUnread ? "bg-pink-400 hover:bg-blue-500" : "bg-gray-700 hover:bg-gray-500"}`}>
-      <span className="text-white">Notifications</span>
-      {hasUnread && <span className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">{unreadCount}</span>}
+    <div className="relative inline-block min-w-[120px]">
+      <div className={`px-4 py-2 text-sm inline-flex items-center justify-center gap-2 rounded-lg transition-colors w-full ${hasUnread ? "bg-pink-400 hover:bg-blue-500" : "bg-gray-700 hover:bg-gray-500"}`}>
+        <span className="text-white">Notifications</span>
+      </div>
+      {hasUnread && <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">{unreadCount}</span>}
     </div>
   );
 }
