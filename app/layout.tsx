@@ -59,11 +59,11 @@ function InboxWithBell() {
           )
         }
         renderAvatar={(notification: any) => {
-          if (notification?.body?.toLowerCase().includes("egat")) {
+          if (notification?.body?.toLowerCase().includes("ikp")) {
             return (
               <img
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnLfg_2hZJi5a-rrgbmS-6l2L_ke1C3MQmkA&s"
-                alt="EGAT avatar"
+                src="https://www.iknowplus.co.th/favicon.ico"
+                alt="IKP avatar"
                 className="w-8 h-8 rounded-full object-cover"
               />
             );
