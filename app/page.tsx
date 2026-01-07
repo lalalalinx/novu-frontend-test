@@ -42,6 +42,67 @@ const apiList = [
       },
     },
   },
+  //apiForTriggerDigest post-01
+  {
+    name: "Trigger Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่แมว'}",
+    description: "ส่ง digest notification workflow (in-demo-app-digest)",
+    endpoint: "/api/trigger",
+    method: "POST",
+    body: {
+      workflowId: "in-demo-app-digest",
+      payload: {
+        title: "กดไลค์โพสต์",
+        name: "พี่แมว",
+        imgLink:
+          "https://ca-times.brightspotcdn.com/dims4/default/c76ae20/2147483647/strip/true/crop/1229x691+0+68/resize/1200x675!/quality/75/?url=https%3A%2F%2Fcalifornia-times-brightspot.s3.amazonaws.com%2F5e%2Fae%2Fd929d6764e6895b410b400b9763b%2Fhedgehog-profile-lead.jpg",
+      },
+    },
+  },
+  {
+    name: "Trigger Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่ปลา'}",
+    description: "ส่ง digest notification workflow (in-demo-app-digest)",
+    endpoint: "/api/trigger",
+    method: "POST",
+    body: {
+      workflowId: "in-demo-app-digest",
+      payload: {
+        title: "กดไลค์โพสต์",
+        name: "พี่ปลา",
+        imgLink:
+          "https://ca-times.brightspotcdn.com/dims4/default/c76ae20/2147483647/strip/true/crop/1229x691+0+68/resize/1200x675!/quality/75/?url=https%3A%2F%2Fcalifornia-times-brightspot.s3.amazonaws.com%2F5e%2Fae%2Fd929d6764e6895b410b400b9763b%2Fhedgehog-profile-lead.jpg",
+      },
+    },
+  },
+  //apiForTriggerDigest post-02
+  {
+    name: "Trigger Digest Workflow {title: 'แชร์โพสต์' by 'พี่นก'}",
+    description: "ส่ง digest notification workflow (in-demo-app-digest)",
+    endpoint: "/api/trigger",
+    method: "POST",
+    body: {
+      workflowId: "in-demo-app-digest",
+      payload: {
+        title: "กดไลค์โพสต์",
+        name: "พี่นก",
+        imgLink: "https://miro.medium.com/v2/resize:fit:1400/1*lWaZtVU68iEnua9JgVt1GQ.jpeg",
+      },
+    },
+  },
+  {
+    name: "Trigger Digest Workflow {title: 'แชร์โพสต์' by 'พี่ต่าย'}",
+    description: "ส่ง digest notification workflow (in-demo-app-digest)",
+    endpoint: "/api/trigger",
+    method: "POST",
+    body: {
+      workflowId: "in-demo-app-digest",
+      payload: {
+        title: "แชร์โพสต์",
+        name: "พี่ต่าย",
+        imgLink: "https://miro.medium.com/v2/resize:fit:1400/1*lWaZtVU68iEnua9JgVt1GQ.jpeg",
+      },
+    },
+  },
+
   // เดี๋ยวจะมี API อื่นๆ เพิ่มที่นี่
 ];
 

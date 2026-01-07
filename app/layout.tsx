@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -9,6 +10,7 @@ import { Inbox, Bell, NovuProvider, useNotifications, Notifications, InboxConten
 import { dark } from "@novu/react/themes";
 import { Archive, Check } from "lucide-react";
 import "./globals.css";
+const tagsHaveTalkIcon = ["social", "idk"];
 
 function BellComponent({ unreadCount }: { unreadCount?: number }) {
   const hasUnread = typeof unreadCount === "number" && unreadCount > 0;
@@ -30,6 +32,18 @@ function BellComponent({ unreadCount }: { unreadCount?: number }) {
 function InboxWithBell() {
   const [isDarkMode, setIsDarkMode] = useState(true);
 
+  const handleNotificationClick = (notification: any) => {
+    console.log("🖱️ Notification clicked:", notification);
+
+    // Extract imageLink from body
+    const imageLink = (notification.body || "").split("{image link:")[1]?.split("}")[0]?.trim();
+
+    if (imageLink) {
+      console.log("🔗 Opening link:", imageLink);
+      window.open(imageLink, "_blank");
+    }
+  };
+
   return (
     <>
       <button
@@ -42,22 +56,45 @@ function InboxWithBell() {
         applicationIdentifier="Q9j-2L1WHqKP"
         subscriberId="e7b9d077-b16f-4c26-8382-4caf4b0ac084"
         appearance={isDarkMode ? { baseTheme: dark } : {}}
+        onNotificationClick={handleNotificationClick}
         renderBell={(props: any) => {
           console.log("🔔 renderBell - total:", props?.total);
           return <BellComponent unreadCount={props?.total || 0} />;
         }}
-        renderSubject={(notification: any) => <strong className="text-pink-500">{notification.subject.toUpperCase()}</strong>}
-        renderBody={(notification: any) =>
-          notification.body?.startsWith("Alert") ? (
+        renderSubject={(notification: any) => {
+          console.log("📝 notification.tags:", notification.tags);
+          const hasTitle = notification.tags?.some((tag: string) => tagsHaveTalkIcon.includes(tag));
+          return (
+            <strong className="text-pink-500">
+              {hasTitle && "💬 "}
+              {notification.subject.toUpperCase()}
+            </strong>
+          );
+        }}
+        renderBody={(notification: any) => {
+          const bodyText = (notification.body || "")
+            .replace(/\\n/g, "\n")
+            .replace(/{image link:.*?}/, "")
+            .trim();
+
+          const imageLink = (notification.body || "").split("{image link:")[1]?.split("}")[0]?.trim();
+
+          return (
             <div>
-              <p>🔔 {notification.body}</p>
+              <p style={{ whiteSpace: "pre-line" }}>{bodyText}</p>
+              {notification?.tags?.includes("image") && imageLink && (
+                <div className="flex justify-center mt-2">
+                  <img
+                    src={imageLink}
+                    alt="Notification Image"
+                    className="rounded"
+                    style={{ maxHeight: "100px", maxWidth: "100%", objectFit: "cover" }}
+                  />
+                </div>
+              )}
             </div>
-          ) : (
-            <div>
-              <p>{notification.body}</p>
-            </div>
-          )
-        }
+          );
+        }}
         renderAvatar={(notification: any) => {
           if (notification?.body?.toLowerCase().includes("ikp")) {
             return (
