@@ -11,7 +11,7 @@ import { Archive, Check } from "lucide-react";
 import "./globals.css";
 
 function BellComponent({ unreadCount }: { unreadCount?: number }) {
-  const hasUnread = unreadCount && unreadCount > 0;
+  const hasUnread = typeof unreadCount === "number" && unreadCount > 0;
 
   console.log("BellComponent RENDER - unreadCount:", unreadCount, "hasUnread:", hasUnread, "timestamp:", new Date().toISOString());
 
