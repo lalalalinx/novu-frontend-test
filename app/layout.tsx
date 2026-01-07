@@ -17,7 +17,9 @@ function BellComponent({ unreadCount }: { unreadCount?: number }) {
 
   return (
     <div className="relative inline-block min-w-[120px]">
-      <div className={`px-4 py-2 text-sm inline-flex items-center justify-center gap-2 rounded-lg transition-colors w-full ${hasUnread ? "bg-pink-400 hover:bg-blue-500" : "bg-gray-700 hover:bg-gray-500"}`}>
+      <div
+        className={`py-2 text-sm inline-flex items-center justify-center gap-2 rounded-lg transition-colors w-full ${hasUnread ? "bg-pink-400 hover:bg-blue-500" : "bg-gray-700 hover:bg-gray-500"}`}
+      >
         <span className="text-white">Notifications</span>
       </div>
       {hasUnread && <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">{unreadCount}</span>}
@@ -118,7 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           applicationIdentifier="Q9j-2L1WHqKP"
           subscriberId="e7b9d077-b16f-4c26-8382-4caf4b0ac084"
         >
-          <nav className="bg-foreground text-white flex justify-between items-center p-4 gap-4 h-16">
+          <nav className="bg-foreground text-white flex justify-between items-center py-4 pr-2 pl-4 gap-4 h-16">
             <InboxWithBell />
           </nav>
           {children}
