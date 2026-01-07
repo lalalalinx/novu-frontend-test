@@ -114,14 +114,65 @@ const apiList = [
       payload: {},
     },
   },
-
-  // เดี๋ยวจะมี API อื่นๆ เพิ่มที่นี่
 ];
 
 export default function Home() {
   const [loading, setLoading] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, any>>({});
   const [openResults, setOpenResults] = useState<Set<string>>(new Set());
+  const [msTeamsLoading, setMsTeamsLoading] = useState(false);
+  const [msTeamsResult, setMsTeamsResult] = useState<any>(null);
+  const [subscriberId, setSubscriberId] = useState("895c2ec2-35a5-4f35-94e3-556652bde8e1");
+  const [msChatLoading, setMsChatLoading] = useState(false);
+  const [msChatResult, setMsChatResult] = useState<any>(null);
+
+  const updateMsTeamsWebhook = async () => {
+    setMsTeamsLoading(true);
+    try {
+      const response = await fetch("/api/update-credentials", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subscriberId: subscriberId,
+          webhookUrl:
+            "https://ikpo365.webhook.office.com/webhookb2/1ea8eaf8-c196-43fd-b1f7-fc90e804d8ce@8fdc8fed-4de1-40ca-895c-530f0727f281/IncomingWebhook/f8ebe692b51342a3a15a9d73bf44363b/766baf08-722c-405e-9085-6ee0e8bc938b/V2d6kPC_oMz4eBJKg9Ojy0REAs9CFzqEojUXEHt7IaUA41",
+          providerId: "msteams",
+          integrationIdentifier: "msteams",
+        }),
+      });
+      const data = await response.json();
+      setMsTeamsResult(data);
+    } catch (error) {
+      setMsTeamsResult({ success: false, error: String(error) });
+    } finally {
+      setMsTeamsLoading(false);
+    }
+  };
+
+  const triggerMsTeamsChat = async () => {
+    setMsChatLoading(true);
+    try {
+      const response = await fetch("/api/trigger", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workflowId: "in-app-demo-chat",
+          payload: {},
+          subscriberId: subscriberId,
+        }),
+      });
+      const data = await response.json();
+      setMsChatResult(data);
+    } catch (error) {
+      setMsChatResult({ success: false, error: String(error) });
+    } finally {
+      setMsChatLoading(false);
+    }
+  };
 
   const callApi = async (api: (typeof apiList)[0]) => {
     setLoading(api.name);
@@ -199,6 +250,44 @@ export default function Home() {
   return (
     <div className="p-8 bg-white min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Novu API Testing</h1>
+
+      {/* MS Teams Webhook Setup */}
+      <div className="mb-6 p-3 bg-gray-50 rounded border border-gray-200">
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            value={subscriberId}
+            onChange={(e) => setSubscriberId(e.target.value)}
+            placeholder="Subscriber ID"
+            className="px-2 py-1 text-xs border border-gray-300 rounded w-80 font-mono"
+          />
+          <button
+            onClick={updateMsTeamsWebhook}
+            disabled={msTeamsLoading}
+            className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+          >
+            {msTeamsLoading ? "Updating..." : "🔗 Update MS Teams Webhook"}
+          </button>
+          {msTeamsResult && <span className={`text-xs ${msTeamsResult.success ? "text-green-600" : "text-red-600"}`}>{msTeamsResult.success ? "✓ Updated" : "✗ Failed"}</span>}
+        </div>
+        {msTeamsResult && <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msTeamsResult, null, 2)}</pre>}
+      </div>
+
+      {/* MS Teams Chat Trigger */}
+      <div className="mb-6 p-3 bg-blue-50 rounded border border-blue-200">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={triggerMsTeamsChat}
+            disabled={msChatLoading}
+            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+          >
+            {msChatLoading ? "Sending..." : "Trigger MS Teams Chat"}
+          </button>
+          <span className="text-xs text-gray-600">Subscriber: {subscriberId.slice(0, 8)}...</span>
+        </div>
+        {msChatResult && <span className={`text-xs ${msChatResult.success !== false ? "text-green-600" : "text-red-600"}`}>{msChatResult.success !== false ? "Sent" : "Failed"}</span>}
+        {msChatResult && <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msChatResult, null, 2)}</pre>}
+      </div>
 
       <div className="flex flex-col gap-6">
         {apiList.map((api, index) => (
