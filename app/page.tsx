@@ -26,6 +26,22 @@ const apiList = [
       },
     },
   },
+  //apiForTriggerEmail
+  {
+    name: "Trigger Email Workflow",
+    description: "ส่ง email notification workflow (in-demo-app-email)",
+    endpoint: "/api/trigger",
+    method: "POST",
+    body: {
+      workflowId: "in-demo-app-email",
+      payload: {
+        firstName: "Lyn but from APP",
+        message: "This is an example message from APP.",
+        actionUrl: "https://www.iknowplus.co.th/",
+        testPayload1: "payload.testPayload1 from APP",
+      },
+    },
+  },
   // เดี๋ยวจะมี API อื่นๆ เพิ่มที่นี่
 ];
 
@@ -61,6 +77,13 @@ export default function Home() {
           response: data,
         },
       }));
+
+      // Auto open result after API call
+      setOpenResults((prev) => {
+        const next = new Set(prev);
+        next.add(api.name);
+        return next;
+      });
     } catch (error) {
       setResults((prev) => ({
         ...prev,
@@ -76,6 +99,13 @@ export default function Home() {
           error: String(error),
         },
       }));
+
+      // Auto open result even on error
+      setOpenResults((prev) => {
+        const next = new Set(prev);
+        next.add(api.name);
+        return next;
+      });
     } finally {
       setLoading(null);
     }

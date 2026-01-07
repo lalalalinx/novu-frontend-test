@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const result = await novu.trigger({
-      workflowId: "with-nextjs-app",
+      workflowId: body.workflowId || "with-nextjs-app",
       to: {
         subscriberId: "e7b9d077-b16f-4c26-8382-4caf4b0ac084",
         firstName: "lyn",
