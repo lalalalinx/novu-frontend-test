@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 
-export default function Home() {
+export default function TriggerTest() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
@@ -32,21 +32,21 @@ export default function Home() {
   };
 
   return (
-    <div className="p-8 bg-white min-h-screen flex flex-col gap-4">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={triggerNotification}
-          disabled={loading}
-          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? "Triggering..." : "Trigger Notification"}
-        </button>
-      </div>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-4">Trigger Notification Test</h1>
+
+      <button
+        onClick={triggerNotification}
+        disabled={loading}
+        className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+      >
+        {loading ? "Triggering..." : "Trigger Notification"}
+      </button>
 
       {result && (
-        <div className="mt-2 p-4 bg-blue-100 rounded-lg max-w-2xl">
+        <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
           <h2 className="font-bold mb-2">Result:</h2>
-          <pre className="overflow-auto text-sm">{JSON.stringify(result, null, 2)}</pre>
+          <pre className="overflow-auto">{JSON.stringify(result, null, 2)}</pre>
         </div>
       )}
     </div>
