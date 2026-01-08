@@ -10,14 +10,30 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const result = await novu.trigger({
-      workflowId: body.workflowId || "with-nextjs-app",
-      to: {
+    // Support both topic and subscriber targeting
+    let toConfig: any;
+
+    if (body.to && body.to.type === "topic") {
+      // Topic targeting
+      toConfig = [
+        {
+          type: "Topic",
+          topicKey: body.to.topicKey,
+        },
+      ];
+    } else {
+      // Subscriber targeting (default)
+      toConfig = {
         subscriberId: body.subscriberId || "e7b9d077-b16f-4c26-8382-4caf4b0ac084",
         firstName: "lyn",
         lastName: "gmail",
         email: "kullanart.01@gmail.com",
-      },
+      };
+    }
+
+    const result = await novu.trigger({
+      workflowId: body.workflowId || "with-nextjs-app",
+      to: toConfig,
       payload: body.payload || {},
     });
 

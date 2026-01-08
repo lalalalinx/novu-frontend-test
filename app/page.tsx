@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // API Configuration
 const apiList = [
@@ -126,6 +126,47 @@ export default function Home() {
   const [msChatLoading, setMsChatLoading] = useState(false);
   const [msChatResult, setMsChatResult] = useState<any>(null);
 
+  // Subscribers state
+  const [subscriberlist, setSubscriberlist] = useState<any[]>([]);
+  const [subscribersLoading, setSubscribersLoading] = useState(true);
+  const [addedToTopicCount, setAddedToTopicCount] = useState<number | null>(null);
+
+  // Topics state
+  const [topicKey, setTopicKey] = useState("admins");
+  const [subscriberInputs, setSubscriberInputs] = useState(["31cd5594-f77f-4986-b377-a7f06aa6d28b", "e7b9d077-b16f-4c26-8382-4caf4b0ac084", "895c2ec2-35a5-4f35-94e3-556652bde8e1"]);
+  const [topicLoading, setTopicLoading] = useState(false);
+  const [topicResult, setTopicResult] = useState<any>(null);
+
+  // Topic Trigger state
+  const [topicTriggerWorkflowId, setTopicTriggerWorkflowId] = useState("workflow-id");
+  const [topicTriggerKey, setTopicTriggerKey] = useState("admins");
+  const [topicTriggerLoading, setTopicTriggerLoading] = useState(false);
+  const [topicTriggerResult, setTopicTriggerResult] = useState<any>(null);
+  const [topicSectionOpen, setTopicSectionOpen] = useState(true);
+
+  // Fetch subscribers on mount
+  useEffect(() => {
+    const fetchSubscribers = async () => {
+      try {
+        const response = await fetch("/api/subscribers");
+        const data = await response.json();
+        if (data.success && data.data && Array.isArray(data.data)) {
+          setSubscriberlist(data.data);
+        } else {
+          console.error("Invalid subscribers data:", data);
+          setSubscriberlist([]);
+        }
+      } catch (error) {
+        console.error("Error fetching subscribers:", error);
+        setSubscriberlist([]);
+      } finally {
+        setSubscribersLoading(false);
+      }
+    };
+
+    fetchSubscribers();
+  }, []);
+
   const updateMsTeamsWebhook = async () => {
     setMsTeamsLoading(true);
     try {
@@ -171,6 +212,71 @@ export default function Home() {
       setMsChatResult({ success: false, error: String(error) });
     } finally {
       setMsChatLoading(false);
+    }
+  };
+
+  const addSubscriberInput = () => {
+    setSubscriberInputs([...subscriberInputs, ""]);
+  };
+
+  const removeSubscriberInput = (index: number) => {
+    setSubscriberInputs(subscriberInputs.filter((_, i) => i !== index));
+  };
+
+  const updateSubscriberInput = (index: number, value: string) => {
+    const newInputs = [...subscriberInputs];
+    newInputs[index] = value;
+    setSubscriberInputs(newInputs);
+  };
+
+  const addSubscribersToTopic = async () => {
+    setTopicLoading(true);
+    try {
+      const validSubscribers = subscriberInputs.filter((s) => s.trim() !== "");
+      const response = await fetch("/api/topics", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topicKey: topicKey,
+          subscribers: validSubscribers,
+        }),
+      });
+      const data = await response.json();
+      setTopicResult(data);
+
+      // Set the count of subscribers added on success
+      if (data.success) {
+        setAddedToTopicCount(validSubscribers.length);
+      }
+    } catch (error) {
+      setTopicResult({ success: false, error: String(error) });
+    } finally {
+      setTopicLoading(false);
+    }
+  };
+
+  const triggerTopicNotification = async () => {
+    setTopicTriggerLoading(true);
+    try {
+      const response = await fetch("/api/trigger", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workflowId: topicTriggerWorkflowId,
+          to: { type: "topic", topicKey: topicTriggerKey },
+          payload: { title: "แจ้งเตือนแอดมิน" },
+        }),
+      });
+      const data = await response.json();
+      setTopicTriggerResult(data);
+    } catch (error) {
+      setTopicTriggerResult({ success: false, error: String(error) });
+    } finally {
+      setTopicTriggerLoading(false);
     }
   };
 
@@ -250,6 +356,241 @@ export default function Home() {
   return (
     <div className="p-8 bg-white min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Novu API Testing</h1>
+      <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+        <h2 className="text-sm font-semibold mb-2 text-purple-800">📋 Subscriber IDs Reference</h2>
+        {subscribersLoading ? (
+          <div className="text-xs text-gray-500">Loading subscribers...</div>
+        ) : (
+          <>
+            <div className="text-xs font-semibold text-purple-700 mb-3">Result: {subscriberlist.length} คน</div>
+            {subscriberlist.length === 0 ? (
+              <div className="text-xs text-gray-500">ไม่มี subscribers</div>
+            ) : (
+              <div className="grid grid-cols-1 gap-2 text-xs font-mono">
+                {subscriberlist.map((sub, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="text-purple-600">{sub.subscriberId}</span>
+                    <span className="text-gray-500">{sub.email}</span>
+                    {sub.firstName && (
+                      <span className="text-gray-400">
+                        ({sub.firstName} {sub.lastName})
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+      {/* Topics Management */}
+      <div className="mb-5 bg-green-50 rounded-lg border border-green-200">
+        <div className="flex gap-2 p-2">
+          <button
+            onClick={() => setTopicSectionOpen(!topicSectionOpen)}
+            className="flex-1 text-start text-lg font-semibold text-green-800 hover:text-green-900 transition-colors"
+          >
+            🏷️ Topic
+          </button>
+          <button
+            onClick={() => setTopicSectionOpen(!topicSectionOpen)}
+            className="px-2 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+          >
+            {topicSectionOpen ? "▼" : "▶"}
+          </button>
+        </div>
+
+        {topicSectionOpen && (
+          <div className="px-4 pb-4">
+            <h2 className="text-sm font-semibold mb-3 text-green-800">Add Subscribers to Topic</h2>
+
+            {/* Topic Key Input */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Topic Key (Tags)</label>
+              <input
+                type="text"
+                value={topicKey}
+                onChange={(e) => setTopicKey(e.target.value)}
+                placeholder="Topic key (e.g., admins)"
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full font-mono"
+              />
+            </div>
+
+            {/* Subscriber Inputs */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-2 block">Subscriber IDs</label>
+              <div className="space-y-2">
+                {subscriberInputs.map((subscriber, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-2 items-center"
+                  >
+                    <input
+                      type="text"
+                      value={subscriber}
+                      onChange={(e) => updateSubscriberInput(index, e.target.value)}
+                      placeholder="Subscriber ID"
+                      className="flex-1 px-3 py-2 text-xs border border-gray-300 rounded font-mono"
+                    />
+                    {subscriberInputs.length > 1 && (
+                      <button
+                        onClick={() => removeSubscriberInput(index)}
+                        className="px-3 py-2 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={addSubscriberInput}
+                className="mt-2 px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+              >
+                + Add Subscriber
+              </button>
+            </div>
+
+            {/* Request Preview */}
+            <div className="mb-3 p-3 bg-gray-100 rounded">
+              <h3 className="font-semibold text-xs mb-2 text-gray-700">Request Body:</h3>
+              <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[200px]">
+                {JSON.stringify(
+                  {
+                    topicKey: topicKey,
+                    subscribers: subscriberInputs.filter((s) => s.trim() !== ""),
+                  },
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+
+            {/* Add to Topic Button */}
+            <button
+              onClick={addSubscribersToTopic}
+              disabled={topicLoading}
+              className="w-full px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {topicLoading ? "Adding to Topic..." : "Add Subscribers to Topic"}
+            </button>
+
+            {/* Result */}
+            {topicResult && (
+              <div className="mt-3">
+                <span className={`text-xs ${topicResult.success ? "text-green-600" : "text-red-600"}`}>{topicResult.success ? `✓ ${topicResult.message}` : `✗ ${topicResult.error}`}</span>
+                <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[150px]">{JSON.stringify(topicResult, null, 2)}</pre>
+              </div>
+            )}
+
+            {/* Divider */}
+            <hr className="my-5 border-green-300" />
+
+            {/* Trigger Topic Notification */}
+            <h2 className="text-sm font-semibold mb-3 text-green-800">Trigger Topic Notification</h2>
+
+            {/* Workflow ID Input */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Workflow ID</label>
+              <input
+                type="text"
+                value={topicTriggerWorkflowId}
+                onChange={(e) => setTopicTriggerWorkflowId(e.target.value)}
+                placeholder="in-app-demo-admins"
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full font-mono"
+              />
+            </div>
+
+            {/* Topic Key Input */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Topic Key</label>
+              <input
+                type="text"
+                value={topicTriggerKey}
+                onChange={(e) => setTopicTriggerKey(e.target.value)}
+                placeholder="admins"
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full font-mono"
+              />
+            </div>
+
+            {/* Request Preview */}
+            <div className="mb-3 p-3 bg-gray-100 rounded">
+              <h3 className="font-semibold text-xs mb-2 text-gray-700">Request Body:</h3>
+              <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[200px]">
+                {JSON.stringify(
+                  {
+                    workflowId: topicTriggerWorkflowId,
+                    to: { type: "topic", topicKey: topicTriggerKey },
+                    payload: {},
+                  },
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+
+            {/* Trigger Button */}
+            <div className="flex gap-2">
+              <button
+                onClick={triggerTopicNotification}
+                disabled={topicTriggerLoading}
+                className="flex-1 text-start text-sm px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {topicTriggerLoading ? "Triggering..." : "Trigger Notification to Topic"}
+              </button>
+            </div>
+
+            {/* Result */}
+            {topicTriggerResult && (
+              <div className="mt-3 p-3 bg-white rounded border border-gray-200">
+                <span className={`text-xs font-semibold ${topicTriggerResult.success !== false ? "text-green-600" : "text-red-600"}`}>
+                  {topicTriggerResult.success !== false ? "✓ Sent Successfully" : `✗ Failed`}
+                </span>
+                <pre className="mt-2 text-xs overflow-auto max-h-[150px]">{JSON.stringify(topicTriggerResult, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {/*   name: api.name,
+            description: api.description,
+            endpoint: api.endpoint,
+            method: api.method,
+            body: api.body,
+          },
+          error: String(error),
+        },
+      }));
+
+      // Auto open result even on error
+      setOpenResults((prev) => {
+        const next = new Set(prev);
+        next.add(api.name);
+        return next;
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const toggleResult = (apiName: string) => {
+    setOpenResults((prev) => {
+      const next = new Set(prev);
+      if (next.has(apiName)) {
+        next.delete(apiName);
+      } else {
+        next.add(apiName);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <div className="p-8 bg-white min-h-screen">
+      <h1 className="text-2xl font-bold mb-6">Novu API Testing</h1>
 
       {/* MS Teams Webhook Setup */}
       <div className="mb-6 p-3 bg-gray-50 rounded border border-gray-200">
@@ -272,7 +613,6 @@ export default function Home() {
         </div>
         {msTeamsResult && <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msTeamsResult, null, 2)}</pre>}
       </div>
-
       {/* MS Teams Chat Trigger */}
       <div className="mb-6 p-3 bg-blue-50 rounded border border-blue-200">
         <div className="flex items-center gap-3">
@@ -288,7 +628,6 @@ export default function Home() {
         {msChatResult && <span className={`text-xs ${msChatResult.success !== false ? "text-green-600" : "text-red-600"}`}>{msChatResult.success !== false ? "Sent" : "Failed"}</span>}
         {msChatResult && <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msChatResult, null, 2)}</pre>}
       </div>
-
       <div className="flex flex-col gap-6">
         {apiList.map((api, index) => (
           <div
@@ -300,13 +639,13 @@ export default function Home() {
               <button
                 onClick={() => callApi(api)}
                 disabled={loading === api.name}
-                className="flex-1 text-start px-4 py-3 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                className="flex-1 text-start text-sm px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors "
               >
                 {loading === api.name ? "Loading..." : api.name}
               </button>
               <button
                 onClick={() => toggleResult(api.name)}
-                className="px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 {openResults.has(api.name) ? "▼" : "▶"}
               </button>

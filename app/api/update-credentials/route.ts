@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
     const result = await novu.subscribers.credentials.update(
       {
-        providerId: providerId || ChatOrPushProviderEnum.MsTeams,
+        providerId: providerId || ChatOrPushProviderEnum.Msteams,
         credentials: {
           webhookUrl: webhookUrl,
         },
