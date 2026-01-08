@@ -129,7 +129,7 @@ export default function Home() {
   const [topicResult, setTopicResult] = useState<any>(null);
 
   // Topic Trigger state
-  const [topicTriggerWorkflowId, setTopicTriggerWorkflowId] = useState("workflow-id");
+  const [topicTriggerWorkflowId, setTopicTriggerWorkflowId] = useState("in-app-demo-admins");
   const [topicTriggerKey, setTopicTriggerKey] = useState("admins");
   const [topicTriggerLoading, setTopicTriggerLoading] = useState(false);
   const [topicTriggerResult, setTopicTriggerResult] = useState<any>(null);
@@ -369,7 +369,7 @@ export default function Home() {
 
   return (
     <div className="p-8 bg-white min-h-screen">
-      <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+      {/* <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
         <h2 className="text-sm font-semibold mb-2 text-purple-800">📋 Subscriber IDs Reference</h2>
         {subscribersLoading ? (
           <div className="text-xs text-gray-500">Loading subscribers...</div>
@@ -398,7 +398,7 @@ export default function Home() {
             )}
           </>
         )}
-      </div>
+      </div> */}
       {/* Topics Management */}
       <div className="mb-5 bg-green-50 rounded-lg border border-green-200">
         <div className="flex gap-2 p-2">
