@@ -33,66 +33,6 @@ const apiList = [
       },
     },
   },
-  //apiForTriggerDigest post-01
-  {
-    name: "Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่แมว'}",
-    description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
-    endpoint: "/api/trigger",
-    method: "POST",
-    body: {
-      workflowId: "in-demo-app-digest",
-      payload: {
-        title: "กดไลค์โพสต์",
-        name: "พี่แมว",
-        imgLink:
-          "https://ca-times.brightspotcdn.com/dims4/default/c76ae20/2147483647/strip/true/crop/1229x691+0+68/resize/1200x675!/quality/75/?url=https%3A%2F%2Fcalifornia-times-brightspot.s3.amazonaws.com%2F5e%2Fae%2Fd929d6764e6895b410b400b9763b%2Fhedgehog-profile-lead.jpg",
-      },
-    },
-  },
-  {
-    name: "Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่ปลา'}",
-    description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
-    endpoint: "/api/trigger",
-    method: "POST",
-    body: {
-      workflowId: "in-demo-app-digest",
-      payload: {
-        title: "กดไลค์โพสต์",
-        name: "พี่ปลา",
-        imgLink:
-          "https://ca-times.brightspotcdn.com/dims4/default/c76ae20/2147483647/strip/true/crop/1229x691+0+68/resize/1200x675!/quality/75/?url=https%3A%2F%2Fcalifornia-times-brightspot.s3.amazonaws.com%2F5e%2Fae%2Fd929d6764e6895b410b400b9763b%2Fhedgehog-profile-lead.jpg",
-      },
-    },
-  },
-  //apiForTriggerDigest post-02
-  {
-    name: "Digest Workflow {title: 'แชร์โพสต์' by 'พี่นก'}",
-    description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
-    endpoint: "/api/trigger",
-    method: "POST",
-    body: {
-      workflowId: "in-demo-app-digest",
-      payload: {
-        title: "กดไลค์โพสต์",
-        name: "พี่นก",
-        imgLink: "https://miro.medium.com/v2/resize:fit:1400/1*lWaZtVU68iEnua9JgVt1GQ.jpeg",
-      },
-    },
-  },
-  {
-    name: "Digest Workflow {title: 'แชร์โพสต์' by 'พี่ต่าย'}",
-    description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
-    endpoint: "/api/trigger",
-    method: "POST",
-    body: {
-      workflowId: "in-demo-app-digest",
-      payload: {
-        title: "แชร์โพสต์",
-        name: "พี่ต่าย",
-        imgLink: "https://miro.medium.com/v2/resize:fit:1400/1*lWaZtVU68iEnua9JgVt1GQ.jpeg",
-      },
-    },
-  },
 
   //throttled to avoid too many APIs
   {
@@ -137,6 +77,15 @@ export default function Home() {
   const [apiSectionOpen, setApiSectionOpen] = useState(true);
   const [chatSectionOpen, setChatSectionOpen] = useState(true);
   const [apiSubscriberIds, setApiSubscriberIds] = useState<Record<string, string>>({});
+
+  // Digest form state
+  const [digestTitle, setDigestTitle] = useState("กดไลค์โพสต์");
+  const [digestName, setDigestName] = useState("พี่ปลา");
+  const [digestImgLink, setDigestImgLink] = useState(
+    "https://ca-times.brightspotcdn.com/dims4/default/c76ae20/2147483647/strip/true/crop/1229x691+0+68/resize/1200x675!/quality/75/?url=https%3A%2F%2Fcalifornia-times-brightspot.s3.amazonaws.com%2F5e%2Fae%2Fd929d6764e6895b410b400b9763b%2Fhedgehog-profile-lead.jpg"
+  );
+  const [digestLoading, setDigestLoading] = useState(false);
+  const [digestResult, setDigestResult] = useState<any>(null);
 
   // Fetch subscribers on mount
   useEffect(() => {
@@ -274,6 +223,33 @@ export default function Home() {
     }
   };
 
+  const triggerDigest = async () => {
+    setDigestLoading(true);
+    try {
+      const response = await fetch("/api/trigger", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workflowId: "in-demo-app-digest",
+          subscriberId: subscriberlist[0]?.subscriberId,
+          payload: {
+            title: digestTitle,
+            name: digestName,
+            imgLink: digestImgLink,
+          },
+        }),
+      });
+      const data = await response.json();
+      setDigestResult(data);
+    } catch (error) {
+      setDigestResult({ success: false, error: String(error) });
+    } finally {
+      setDigestLoading(false);
+    }
+  };
+
   const callApi = async (api: (typeof apiList)[0]) => {
     setLoading(api.name);
 
@@ -369,6 +345,213 @@ export default function Home() {
 
   return (
     <div className="p-8 bg-white min-h-screen">
+      {/* API Testing Section */}
+      <div className="mb-5 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="flex gap-2 p-2">
+          <button
+            onClick={() => setApiSectionOpen(!apiSectionOpen)}
+            className="flex-1 text-start text-lg font-semibold text-blue-800 hover:text-blue-900 transition-colors"
+          >
+            Basic (basic, mail, throttled, digest)
+          </button>
+          <button
+            onClick={() => setApiSectionOpen(!apiSectionOpen)}
+            className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+          >
+            {apiSectionOpen ? "▼" : "▶"}
+          </button>
+        </div>
+
+        {apiSectionOpen && (
+          <div className="px-4 pb-4">
+            <div className="flex flex-col gap-6">
+              {apiList.map((api, index) => (
+                <div
+                  key={api.name}
+                  className="flex flex-col gap-3"
+                >
+                  {/* Subscriber ID Input */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-gray-700 whitespace-nowrap">Subscriber ID:</label>
+                    <input
+                      type="text"
+                      value={apiSubscriberIds[api.name] || ""}
+                      onChange={(e) => setApiSubscriberIds({ ...apiSubscriberIds, [api.name]: e.target.value })}
+                      placeholder="Optional subscriber ID"
+                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded font-mono"
+                    />
+                  </div>
+
+                  {/* API Button with Call and Toggle */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => callApi(api)}
+                      disabled={loading === api.name}
+                      className="flex-1 text-start text-xs px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors "
+                    >
+                      {loading === api.name ? "Loading..." : api.name}
+                    </button>
+                    <button
+                      onClick={() => toggleResult(api.name)}
+                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      {openResults.has(api.name) ? "▼" : "▶"}
+                    </button>
+                  </div>
+
+                  {/* Result Section */}
+                  {openResults.has(api.name) && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      {/* <h2 className="font-bold text-lg text-gray-600 mb-3">{api.name}</h2> */}
+                      <h3 className="font-normal text-sm text-gray-400 mb-3">{api.description}</h3>
+                      <div className="mb-3 p-3 bg-gray-100 rounded">
+                        <h3 className="font-semibold text-sm mb-2">Request:</h3>
+                        {results[api.name] ? (
+                          <>
+                            <p className="text-xs">
+                              <span className="font-mono font-bold">{results[api.name].api.method}</span> {results[api.name].api.endpoint}
+                            </p>
+                            <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">{JSON.stringify(results[api.name].api.body, null, 2)}</pre>
+                          </>
+                        ) : (
+                          <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[500px]">null</pre>
+                        )}
+                      </div>
+
+                      <div className="mb-3 p-3 bg-gray-100 rounded">
+                        <h3 className="font-semibold text-sm mb-2">Response:</h3>
+                        {results[api.name] ? (
+                          <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">{JSON.stringify(results[api.name].response || results[api.name].error, null, 2)}</pre>
+                        ) : (
+                          <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">null</pre>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Separator line (not after last item) */}
+                  {index < apiList.length - 1 && <hr className="border-gray-300" />}
+                </div>
+              ))}
+
+              {/* Digest Form */}
+              <div className="flex flex-col gap-3">
+                {/* Subscriber ID Input */}
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-gray-700 whitespace-nowrap">Subscriber ID:</label>
+                  <input
+                    type="text"
+                    value={apiSubscriberIds["Digest Workflow"] || ""}
+                    onChange={(e) => setApiSubscriberIds({ ...apiSubscriberIds, ["Digest Workflow"]: e.target.value })}
+                    placeholder="Optional subscriber ID"
+                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded font-mono"
+                  />
+                </div>
+
+                {/* Digest Button with Toggle */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={triggerDigest}
+                    disabled={digestLoading}
+                    className="flex-1 text-start px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {digestLoading ? (
+                      <div className="text-xs">Loading...</div>
+                    ) : (
+                      <div>
+                        <div className="text-xs font-semibold">Digest</div>
+                      </div>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => toggleResult("Digest Workflow")}
+                    className="px-2 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    {openResults.has("Digest Workflow") ? "▼" : "▶"}
+                  </button>
+                </div>
+
+                {/* Digest Form Inputs */}
+                {openResults.has("Digest Workflow") && (
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 className="font-normal text-sm text-gray-400 mb-3">รวมแล้วส่งทีเดียว (in-demo-app-digest)</h3>
+
+                    {/* Title Input */}
+                    <div className="mb-3">
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Title</label>
+                      <input
+                        type="text"
+                        value={digestTitle}
+                        onChange={(e) => setDigestTitle(e.target.value)}
+                        placeholder="กดไลค์โพสต์"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
+                      />
+                    </div>
+
+                    {/* Name Dropdown */}
+                    <div className="mb-3">
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Name</label>
+                      <select
+                        value={digestName}
+                        onChange={(e) => setDigestName(e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
+                      >
+                        <option value="พี่ปลา">พี่ปลา</option>
+                        <option value="พี่นก">พี่นก</option>
+                        <option value="พี่ต่าย">พี่ต่าย</option>
+                        <option value="พี่แมวน้ำ">พี่แมวน้ำ</option>
+                      </select>
+                    </div>
+
+                    {/* Image Link Input */}
+                    <div className="mb-3">
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Image Link</label>
+                      <input
+                        type="text"
+                        value={digestImgLink}
+                        onChange={(e) => setDigestImgLink(e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded w-full font-mono"
+                      />
+                    </div>
+
+                    {/* Request Preview */}
+                    <div className="mb-3 p-3 bg-gray-100 rounded">
+                      <h3 className="font-semibold text-sm mb-2">Request Body:</h3>
+                      <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[200px]">
+                        {JSON.stringify(
+                          {
+                            workflowId: "in-demo-app-digest",
+                            subscriberId: apiSubscriberIds["Digest Workflow"] || subscriberlist[0]?.subscriberId,
+                            payload: {
+                              title: digestTitle,
+                              name: digestName,
+                              imgLink: digestImgLink,
+                            },
+                          },
+                          null,
+                          2
+                        )}
+                      </pre>
+                    </div>
+
+                    {/* Result */}
+                    {digestResult && (
+                      <div className="mb-3 p-3 bg-gray-100 rounded">
+                        <h3 className="font-semibold text-sm mb-2">Response:</h3>
+                        <span className={`text-xs font-semibold ${digestResult.success !== false ? "text-green-600" : "text-red-600"}`}>
+                          {digestResult.success !== false ? "✓ Sent Successfully" : `✗ Failed`}
+                        </span>
+                        <pre className="mt-2 text-xs overflow-auto max-h-[150px] p-2 bg-white rounded">{JSON.stringify(digestResult, null, 2)}</pre>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
       {/* <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
         <h2 className="text-sm font-semibold mb-2 text-purple-800">📋 Subscriber IDs Reference</h2>
         {subscribersLoading ? (
@@ -406,7 +589,7 @@ export default function Home() {
             onClick={() => setTopicSectionOpen(!topicSectionOpen)}
             className="flex-1 text-start text-lg font-semibold text-green-800 hover:text-green-900 transition-colors"
           >
-            🏷️ Topic
+            Topic
           </button>
           <button
             onClick={() => setTopicSectionOpen(!topicSectionOpen)}
@@ -568,42 +751,6 @@ export default function Home() {
           </div>
         )}
       </div>
-      {/*   name: api.name,
-            description: api.description,
-            endpoint: api.endpoint,
-            method: api.method,
-            body: api.body,
-          },
-          error: String(error),
-        },
-      }));
-
-      // Auto open result even on error
-      setOpenResults((prev) => {
-        const next = new Set(prev);
-        next.add(api.name);
-        return next;
-      });
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const toggleResult = (apiName: string) => {
-    setOpenResults((prev) => {
-      const next = new Set(prev);
-      if (next.has(apiName)) {
-        next.delete(apiName);
-      } else {
-        next.add(apiName);
-      }
-      return next;
-    });
-  };
-
-  return (
-    <div className="p-8 bg-white min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Novu API Testing</h1>
 
       {/* Chat Section */}
       <div className="mb-5 bg-orange-50 rounded-lg border border-orange-200">
@@ -612,7 +759,7 @@ export default function Home() {
             onClick={() => setChatSectionOpen(!chatSectionOpen)}
             className="flex-1 text-start text-lg font-semibold text-orange-800 hover:text-orange-900 transition-colors"
           >
-            💬 Chat
+            Chat
           </button>
           <button
             onClick={() => setChatSectionOpen(!chatSectionOpen)}
@@ -662,99 +809,6 @@ export default function Home() {
                 {msChatResult && <span className={`text-xs ${msChatResult.success !== false ? "text-green-600" : "text-red-600"}`}>{msChatResult.success !== false ? "Sent" : "Failed"}</span>}
               </div>
               {msChatResult && <pre className="text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msChatResult, null, 2)}</pre>}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* API Testing Section */}
-      <div className="mb-5 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex gap-2 p-2">
-          <button
-            onClick={() => setApiSectionOpen(!apiSectionOpen)}
-            className="flex-1 text-start text-lg font-semibold text-blue-800 hover:text-blue-900 transition-colors"
-          >
-            API Testing
-          </button>
-          <button
-            onClick={() => setApiSectionOpen(!apiSectionOpen)}
-            className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-          >
-            {apiSectionOpen ? "▼" : "▶"}
-          </button>
-        </div>
-
-        {apiSectionOpen && (
-          <div className="px-4 pb-4">
-            <div className="flex flex-col gap-6">
-              {apiList.map((api, index) => (
-                <div
-                  key={api.name}
-                  className="flex flex-col gap-3"
-                >
-                  {/* Subscriber ID Input */}
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs font-medium text-gray-700 whitespace-nowrap">Subscriber ID:</label>
-                    <input
-                      type="text"
-                      value={apiSubscriberIds[api.name] || ""}
-                      onChange={(e) => setApiSubscriberIds({ ...apiSubscriberIds, [api.name]: e.target.value })}
-                      placeholder="Optional subscriber ID"
-                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded font-mono"
-                    />
-                  </div>
-
-                  {/* API Button with Call and Toggle */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => callApi(api)}
-                      disabled={loading === api.name}
-                      className="flex-1 text-start text-xs px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors "
-                    >
-                      {loading === api.name ? "Loading..." : api.name}
-                    </button>
-                    <button
-                      onClick={() => toggleResult(api.name)}
-                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                    >
-                      {openResults.has(api.name) ? "▼" : "▶"}
-                    </button>
-                  </div>
-
-                  {/* Result Section */}
-                  {openResults.has(api.name) && (
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <h2 className="font-bold text-lg text-blue-700 mb-3">{api.name}</h2>
-
-                      <div className="mb-3 p-3 bg-gray-100 rounded">
-                        <h3 className="font-semibold text-sm mb-2">Request:</h3>
-                        {results[api.name] ? (
-                          <>
-                            <p className="text-xs">
-                              <span className="font-mono font-bold">{results[api.name].api.method}</span> {results[api.name].api.endpoint}
-                            </p>
-                            <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">{JSON.stringify(results[api.name].api.body, null, 2)}</pre>
-                          </>
-                        ) : (
-                          <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[500px]">null</pre>
-                        )}
-                      </div>
-
-                      <div className="mb-3 p-3 bg-gray-100 rounded">
-                        <h3 className="font-semibold text-sm mb-2">Response:</h3>
-                        {results[api.name] ? (
-                          <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">{JSON.stringify(results[api.name].response || results[api.name].error, null, 2)}</pre>
-                        ) : (
-                          <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">null</pre>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Separator line (not after last item) */}
-                  {index < apiList.length - 1 && <hr className="border-gray-300" />}
-                </div>
-              ))}
             </div>
           </div>
         )}
