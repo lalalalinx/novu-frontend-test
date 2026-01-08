@@ -292,10 +292,10 @@ export default function Home() {
         }
       }
 
-      // Include subscriber data in body if found
+      // Only include subscriberId (not email/firstName/lastName to avoid updating subscriber data)
       const requestBody = {
         ...api.body,
-        ...(subscriberData && subscriberData),
+        subscriberId: subscriberData?.subscriberId || apiSubscriberIds[api.name] || subscriberlist[0]?.subscriberId,
       };
 
       const response = await fetch(api.endpoint, {

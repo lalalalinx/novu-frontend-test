@@ -59,16 +59,17 @@ function BellComponent({ unreadCount, subscriberName }: { unreadCount?: number; 
   );
 }
 
-function InboxWithBell() {
+function InboxWithBell({ 
+  selectedSubscriber, 
+  setSelectedSubscriber, 
+  subscribers 
+}: { 
+  selectedSubscriber: string; 
+  setSelectedSubscriber: (id: string) => void; 
+  subscribers: Array<{ id: string; name: string }>;
+}) {
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [selectedSubscriber, setSelectedSubscriber] = useState("e7b9d077-b16f-4c26-8382-4caf4b0ac084");
   const [showDropdown, setShowDropdown] = useState(false);
-
-  const subscribers = [
-    { id: "895c2ec2-35a5-4f35-94e3-556652bde8e1", name: "lyno" },
-    { id: "e7b9d077-b16f-4c26-8382-4caf4b0ac084", name: "lyn" },
-    { id: "c79a9ad5-f137-43c4-98e5-264494ff0e2b", name: "tester07012026" },
-  ];
 
   const currentSubscriber = subscribers.find((sub) => sub.id === selectedSubscriber) || subscribers[1];
 
@@ -254,15 +255,27 @@ function InboxWithBell() {
 // };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const [selectedSubscriber, setSelectedSubscriber] = useState("e7b9d077-b16f-4c26-8382-4caf4b0ac084");
+
+  const subscribers = [
+    { id: "895c2ec2-35a5-4f35-94e3-556652bde8e1", name: "lyno" },
+    { id: "e7b9d077-b16f-4c26-8382-4caf4b0ac084", name: "lyn" },
+    { id: "c79a9ad5-f137-43c4-98e5-264494ff0e2b", name: "tester07012026" },
+  ];
+
   return (
     <html lang="en">
       <body className="">
         <NovuProvider
           applicationIdentifier="Q9j-2L1WHqKP"
-          subscriberId="e7b9d077-b16f-4c26-8382-4caf4b0ac084"
+          subscriberId={selectedSubscriber}
         >
           <nav className="sticky top-0 z-50 bg-foreground text-white flex justify-between items-center py-4 pr-2 pl-4 gap-4 h-16 shadow-md">
-            <InboxWithBell />
+            <InboxWithBell 
+              selectedSubscriber={selectedSubscriber}
+              setSelectedSubscriber={setSelectedSubscriber}
+              subscribers={subscribers}
+            />
           </nav>
           {children}
           {/* <Inbox

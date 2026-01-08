@@ -22,12 +22,9 @@ export async function POST(request: Request) {
         },
       ];
     } else {
-      // Subscriber targeting (default)
+      // Subscriber targeting - ONLY send subscriberId to avoid updating subscriber data
       toConfig = {
         subscriberId: body.subscriberId || "e7b9d077-b16f-4c26-8382-4caf4b0ac084",
-        firstName: "lyn",
-        lastName: "gmail",
-        email: "kullanart.01@gmail.com",
       };
     }
 
