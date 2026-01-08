@@ -220,7 +220,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           applicationIdentifier="Q9j-2L1WHqKP"
           subscriberId="e7b9d077-b16f-4c26-8382-4caf4b0ac084"
         >
-          <nav className="bg-foreground text-white flex justify-between items-center py-4 pr-2 pl-4 gap-4 h-16">
+          <nav className="sticky top-0 z-50 bg-foreground text-white flex justify-between items-center py-4 pr-2 pl-4 gap-4 h-16 shadow-md">
             <InboxWithBell />
           </nav>
           {children}

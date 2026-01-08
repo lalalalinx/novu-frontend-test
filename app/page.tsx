@@ -5,18 +5,9 @@ import { useState, useEffect } from "react";
 
 // API Configuration
 const apiList = [
-  {
-    name: "test",
-    description: "test",
-    endpoint: "test",
-    method: "test",
-    body: {
-      payload: {},
-    },
-  },
   //apiForTriggerBasic
   {
-    name: "Trigger 3 Basic Notifications",
+    name: "3 Basic Notifications",
     description: "ส่ง notification ไปยัง subscriber",
     endpoint: "/api/trigger",
     method: "POST",
@@ -28,7 +19,7 @@ const apiList = [
   },
   //apiForTriggerEmail
   {
-    name: "Trigger Email Workflow",
+    name: "Email Workflow",
     description: "ส่ง email notification workflow (in-demo-app-email)",
     endpoint: "/api/trigger",
     method: "POST",
@@ -44,7 +35,7 @@ const apiList = [
   },
   //apiForTriggerDigest post-01
   {
-    name: "Trigger Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่แมว'}",
+    name: "Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่แมว'}",
     description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
     endpoint: "/api/trigger",
     method: "POST",
@@ -59,7 +50,7 @@ const apiList = [
     },
   },
   {
-    name: "Trigger Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่ปลา'}",
+    name: "Digest Workflow {title: 'กดไลค์โพสต์' by 'พี่ปลา'}",
     description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
     endpoint: "/api/trigger",
     method: "POST",
@@ -75,7 +66,7 @@ const apiList = [
   },
   //apiForTriggerDigest post-02
   {
-    name: "Trigger Digest Workflow {title: 'แชร์โพสต์' by 'พี่นก'}",
+    name: "Digest Workflow {title: 'แชร์โพสต์' by 'พี่นก'}",
     description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
     endpoint: "/api/trigger",
     method: "POST",
@@ -89,7 +80,7 @@ const apiList = [
     },
   },
   {
-    name: "Trigger Digest Workflow {title: 'แชร์โพสต์' by 'พี่ต่าย'}",
+    name: "Digest Workflow {title: 'แชร์โพสต์' by 'พี่ต่าย'}",
     description: "Digest = รวมแล้วส่งทีเดียว (in-demo-app-digest)",
     endpoint: "/api/trigger",
     method: "POST",
@@ -105,7 +96,7 @@ const apiList = [
 
   //throttled to avoid too many APIs
   {
-    name: "Trigger Throttled",
+    name: "Throttled",
     description: "จำกัดความถี่ในการส่ง notification ซ้ำๆ / Throttle = ซ้ำแล้วไม่ส่งถี่ (in-demo-app-throttle)",
     endpoint: "/api/trigger",
     method: "POST",
@@ -145,6 +136,7 @@ export default function Home() {
   const [topicSectionOpen, setTopicSectionOpen] = useState(true);
   const [apiSectionOpen, setApiSectionOpen] = useState(true);
   const [chatSectionOpen, setChatSectionOpen] = useState(true);
+  const [apiSubscriberIds, setApiSubscriberIds] = useState<Record<string, string>>({});
 
   // Fetch subscribers on mount
   useEffect(() => {
@@ -286,12 +278,32 @@ export default function Home() {
     setLoading(api.name);
 
     try {
+      // Find subscriber data if ID is provided
+      let subscriberData = null;
+      if (apiSubscriberIds[api.name]) {
+        const foundSubscriber = subscriberlist.find((sub) => sub.subscriberId === apiSubscriberIds[api.name]);
+        if (foundSubscriber) {
+          subscriberData = {
+            subscriberId: foundSubscriber.subscriberId,
+            email: foundSubscriber.email,
+            ...(foundSubscriber.firstName && { firstName: foundSubscriber.firstName }),
+            ...(foundSubscriber.lastName && { lastName: foundSubscriber.lastName }),
+          };
+        }
+      }
+
+      // Include subscriber data in body if found
+      const requestBody = {
+        ...api.body,
+        ...(subscriberData && subscriberData),
+      };
+
       const response = await fetch(api.endpoint, {
         method: api.method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(api.body),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -304,7 +316,7 @@ export default function Home() {
             description: api.description,
             endpoint: api.endpoint,
             method: api.method,
-            body: api.body,
+            body: requestBody,
           },
           response: data,
         },
@@ -357,7 +369,6 @@ export default function Home() {
 
   return (
     <div className="p-8 bg-white min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Novu API Testing</h1>
       <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
         <h2 className="text-sm font-semibold mb-2 text-purple-800">📋 Subscriber IDs Reference</h2>
         {subscribersLoading ? (
@@ -681,6 +692,18 @@ export default function Home() {
                   key={api.name}
                   className="flex flex-col gap-3"
                 >
+                  {/* Subscriber ID Input */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-gray-700 whitespace-nowrap">Subscriber ID:</label>
+                    <input
+                      type="text"
+                      value={apiSubscriberIds[api.name] || ""}
+                      onChange={(e) => setApiSubscriberIds({ ...apiSubscriberIds, [api.name]: e.target.value })}
+                      placeholder="Optional subscriber ID"
+                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded font-mono"
+                    />
+                  </div>
+
                   {/* API Button with Call and Toggle */}
                   <div className="flex gap-2">
                     <button
