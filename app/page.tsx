@@ -143,6 +143,8 @@ export default function Home() {
   const [topicTriggerLoading, setTopicTriggerLoading] = useState(false);
   const [topicTriggerResult, setTopicTriggerResult] = useState<any>(null);
   const [topicSectionOpen, setTopicSectionOpen] = useState(true);
+  const [apiSectionOpen, setApiSectionOpen] = useState(true);
+  const [chatSectionOpen, setChatSectionOpen] = useState(true);
 
   // Fetch subscribers on mount
   useEffect(() => {
@@ -592,99 +594,147 @@ export default function Home() {
     <div className="p-8 bg-white min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Novu API Testing</h1>
 
-      {/* MS Teams Webhook Setup */}
-      <div className="mb-6 p-3 bg-gray-50 rounded border border-gray-200">
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            value={subscriberId}
-            onChange={(e) => setSubscriberId(e.target.value)}
-            placeholder="Subscriber ID"
-            className="px-2 py-1 text-xs border border-gray-300 rounded w-80 font-mono"
-          />
+      {/* Chat Section */}
+      <div className="mb-5 bg-orange-50 rounded-lg border border-orange-200">
+        <div className="flex gap-2 p-2">
           <button
-            onClick={updateMsTeamsWebhook}
-            disabled={msTeamsLoading}
-            className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            onClick={() => setChatSectionOpen(!chatSectionOpen)}
+            className="flex-1 text-start text-lg font-semibold text-orange-800 hover:text-orange-900 transition-colors"
           >
-            {msTeamsLoading ? "Updating..." : "🔗 Update MS Teams Webhook"}
+            💬 Chat
           </button>
-          {msTeamsResult && <span className={`text-xs ${msTeamsResult.success ? "text-green-600" : "text-red-600"}`}>{msTeamsResult.success ? "✓ Updated" : "✗ Failed"}</span>}
-        </div>
-        {msTeamsResult && <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msTeamsResult, null, 2)}</pre>}
-      </div>
-      {/* MS Teams Chat Trigger */}
-      <div className="mb-6 p-3 bg-blue-50 rounded border border-blue-200">
-        <div className="flex items-center gap-3">
           <button
-            onClick={triggerMsTeamsChat}
-            disabled={msChatLoading}
-            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            onClick={() => setChatSectionOpen(!chatSectionOpen)}
+            className="px-2 py-1 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors"
           >
-            {msChatLoading ? "Sending..." : "Trigger MS Teams Chat"}
+            {chatSectionOpen ? "▼" : "▶"}
           </button>
-          <span className="text-xs text-gray-600">Subscriber: {subscriberId.slice(0, 8)}...</span>
         </div>
-        {msChatResult && <span className={`text-xs ${msChatResult.success !== false ? "text-green-600" : "text-red-600"}`}>{msChatResult.success !== false ? "Sent" : "Failed"}</span>}
-        {msChatResult && <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msChatResult, null, 2)}</pre>}
-      </div>
-      <div className="flex flex-col gap-6">
-        {apiList.map((api, index) => (
-          <div
-            key={api.name}
-            className="flex flex-col gap-3"
-          >
-            {/* API Button with Call and Toggle */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => callApi(api)}
-                disabled={loading === api.name}
-                className="flex-1 text-start text-sm px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors "
-              >
-                {loading === api.name ? "Loading..." : api.name}
-              </button>
-              <button
-                onClick={() => toggleResult(api.name)}
-                className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                {openResults.has(api.name) ? "▼" : "▶"}
-              </button>
+
+        {chatSectionOpen && (
+          <div className="px-4 pb-4">
+            {/* MS Teams Webhook Setup */}
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold mb-2 text-orange-800">MS Teams Webhook Setup</h2>
+              <div className="flex items-center gap-3 mb-2">
+                <input
+                  type="text"
+                  value={subscriberId}
+                  onChange={(e) => setSubscriberId(e.target.value)}
+                  placeholder="Subscriber ID"
+                  className="px-2 py-1 text-xs border border-gray-300 rounded w-80 font-mono"
+                />
+                <button
+                  onClick={updateMsTeamsWebhook}
+                  disabled={msTeamsLoading}
+                  className="px-3 py-1.5 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  {msTeamsLoading ? "Updating..." : "🔗 Update MS Teams Webhook"}
+                </button>
+                {msTeamsResult && <span className={`text-xs ${msTeamsResult.success ? "text-green-600" : "text-red-600"}`}>{msTeamsResult.success ? "✓ Updated" : "✗ Failed"}</span>}
+              </div>
+              {msTeamsResult && <pre className="text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msTeamsResult, null, 2)}</pre>}
             </div>
 
-            {/* Result Section */}
-            {openResults.has(api.name) && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h2 className="font-bold text-lg text-blue-700 mb-3">{api.name}</h2>
-
-                <div className="mb-3 p-3 bg-gray-100 rounded">
-                  <h3 className="font-semibold text-sm mb-2">Request:</h3>
-                  {results[api.name] ? (
-                    <>
-                      <p className="text-xs">
-                        <span className="font-mono font-bold">{results[api.name].api.method}</span> {results[api.name].api.endpoint}
-                      </p>
-                      <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">{JSON.stringify(results[api.name].api.body, null, 2)}</pre>
-                    </>
-                  ) : (
-                    <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[500px]">null</pre>
-                  )}
-                </div>
-
-                <div className="mb-3 p-3 bg-gray-100 rounded">
-                  <h3 className="font-semibold text-sm mb-2">Response:</h3>
-                  {results[api.name] ? (
-                    <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">{JSON.stringify(results[api.name].response || results[api.name].error, null, 2)}</pre>
-                  ) : (
-                    <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">null</pre>
-                  )}
-                </div>
+            {/* MS Teams Chat Trigger */}
+            <div>
+              <h2 className="text-sm font-semibold mb-2 text-orange-800">Trigger MS Teams Chat</h2>
+              <div className="flex items-center gap-3 mb-2">
+                <button
+                  onClick={triggerMsTeamsChat}
+                  disabled={msChatLoading}
+                  className="px-3 py-1.5 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  {msChatLoading ? "Sending..." : "Trigger MS Teams Chat"}
+                </button>
+                <span className="text-xs text-gray-600">Subscriber: {subscriberId.slice(0, 8)}...</span>
+                {msChatResult && <span className={`text-xs ${msChatResult.success !== false ? "text-green-600" : "text-red-600"}`}>{msChatResult.success !== false ? "Sent" : "Failed"}</span>}
               </div>
-            )}
-
-            {/* Separator line (not after last item) */}
-            {index < apiList.length - 1 && <hr className="border-gray-300" />}
+              {msChatResult && <pre className="text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[100px]">{JSON.stringify(msChatResult, null, 2)}</pre>}
+            </div>
           </div>
-        ))}
+        )}
+      </div>
+
+      {/* API Testing Section */}
+      <div className="mb-5 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="flex gap-2 p-2">
+          <button
+            onClick={() => setApiSectionOpen(!apiSectionOpen)}
+            className="flex-1 text-start text-lg font-semibold text-blue-800 hover:text-blue-900 transition-colors"
+          >
+            API Testing
+          </button>
+          <button
+            onClick={() => setApiSectionOpen(!apiSectionOpen)}
+            className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+          >
+            {apiSectionOpen ? "▼" : "▶"}
+          </button>
+        </div>
+
+        {apiSectionOpen && (
+          <div className="px-4 pb-4">
+            <div className="flex flex-col gap-6">
+              {apiList.map((api, index) => (
+                <div
+                  key={api.name}
+                  className="flex flex-col gap-3"
+                >
+                  {/* API Button with Call and Toggle */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => callApi(api)}
+                      disabled={loading === api.name}
+                      className="flex-1 text-start text-xs px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors "
+                    >
+                      {loading === api.name ? "Loading..." : api.name}
+                    </button>
+                    <button
+                      onClick={() => toggleResult(api.name)}
+                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      {openResults.has(api.name) ? "▼" : "▶"}
+                    </button>
+                  </div>
+
+                  {/* Result Section */}
+                  {openResults.has(api.name) && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h2 className="font-bold text-lg text-blue-700 mb-3">{api.name}</h2>
+
+                      <div className="mb-3 p-3 bg-gray-100 rounded">
+                        <h3 className="font-semibold text-sm mb-2">Request:</h3>
+                        {results[api.name] ? (
+                          <>
+                            <p className="text-xs">
+                              <span className="font-mono font-bold">{results[api.name].api.method}</span> {results[api.name].api.endpoint}
+                            </p>
+                            <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">{JSON.stringify(results[api.name].api.body, null, 2)}</pre>
+                          </>
+                        ) : (
+                          <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[500px]">null</pre>
+                        )}
+                      </div>
+
+                      <div className="mb-3 p-3 bg-gray-100 rounded">
+                        <h3 className="font-semibold text-sm mb-2">Response:</h3>
+                        {results[api.name] ? (
+                          <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">{JSON.stringify(results[api.name].response || results[api.name].error, null, 2)}</pre>
+                        ) : (
+                          <pre className="overflow-auto text-xs mt-2 p-2 bg-white rounded max-h-[500px]">null</pre>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Separator line (not after last item) */}
+                  {index < apiList.length - 1 && <hr className="border-gray-300" />}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
