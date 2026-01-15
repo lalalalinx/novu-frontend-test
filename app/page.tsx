@@ -87,6 +87,21 @@ export default function Home() {
   const [digestLoading, setDigestLoading] = useState(false);
   const [digestResult, setDigestResult] = useState<any>(null);
 
+  // Broadcast state
+  const [broadcastSectionOpen, setBroadcastSectionOpen] = useState(true);
+  const [broadcastName, setBroadcastName] = useState("in-app-demo-filters");
+  const [broadcastTitle, setBroadcastTitle] = useState("Pink alert");
+  const [broadcastMessage, setBroadcastMessage] = useState("This message is for pink people only");
+  const [broadcastFilters, setBroadcastFilters] = useState([{ key: "color", operator: "EQUAL", value: "pink" }]);
+  const [broadcastLoading, setBroadcastLoading] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState<any>(null);
+
+  // Update subscriber data state
+  const [updateSubscriberId, setUpdateSubscriberId] = useState("");
+  const [updateSubscriberData, setUpdateSubscriberData] = useState('{\n  "color": "pink"\n}');
+  const [updateSubscriberLoading, setUpdateSubscriberLoading] = useState(false);
+  const [updateSubscriberResult, setUpdateSubscriberResult] = useState<any>(null);
+
   // Fetch subscribers on mount
   useEffect(() => {
     const fetchSubscribers = async () => {
@@ -247,6 +262,78 @@ export default function Home() {
       setDigestResult({ success: false, error: String(error) });
     } finally {
       setDigestLoading(false);
+    }
+  };
+
+  // Broadcast functions
+  const addBroadcastFilter = () => {
+    setBroadcastFilters([...broadcastFilters, { key: "", operator: "EQUAL", value: "" }]);
+  };
+
+  const removeBroadcastFilter = (index: number) => {
+    setBroadcastFilters(broadcastFilters.filter((_, i) => i !== index));
+  };
+
+  const updateBroadcastFilter = (index: number, field: string, value: string) => {
+    const newFilters = [...broadcastFilters];
+    newFilters[index] = { ...newFilters[index], [field]: value };
+    setBroadcastFilters(newFilters);
+  };
+
+  const triggerBroadcast = async () => {
+    setBroadcastLoading(true);
+    try {
+      const response = await fetch("/api/broadcast", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: broadcastName,
+          filters: broadcastFilters.filter((f) => f.key && f.value),
+          payload: {
+            title: broadcastTitle,
+            message: broadcastMessage,
+          },
+        }),
+      });
+      const data = await response.json();
+      setBroadcastResult(data);
+    } catch (error) {
+      setBroadcastResult({ success: false, error: String(error) });
+    } finally {
+      setBroadcastLoading(false);
+    }
+  };
+
+  const updateSubscriberDataAttributes = async () => {
+    setUpdateSubscriberLoading(true);
+    try {
+      let parsedData;
+      try {
+        parsedData = JSON.parse(updateSubscriberData);
+      } catch (e) {
+        setUpdateSubscriberResult({ success: false, error: "Invalid JSON format" });
+        setUpdateSubscriberLoading(false);
+        return;
+      }
+
+      const response = await fetch("/api/subscribers/update-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subscriberId: updateSubscriberId,
+          data: parsedData,
+        }),
+      });
+      const data = await response.json();
+      setUpdateSubscriberResult(data);
+    } catch (error) {
+      setUpdateSubscriberResult({ success: false, error: String(error) });
+    } finally {
+      setUpdateSubscriberLoading(false);
     }
   };
 
@@ -746,6 +833,270 @@ export default function Home() {
                   {topicTriggerResult.success !== false ? "✓ Sent Successfully" : `✗ Failed`}
                 </span>
                 <pre className="mt-2 text-xs overflow-auto max-h-[150px]">{JSON.stringify(topicTriggerResult, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Broadcast Section */}
+      <div className="mb-5 bg-purple-50 rounded-lg border border-purple-200">
+        <div className="flex gap-2 p-2">
+          <button
+            onClick={() => setBroadcastSectionOpen(!broadcastSectionOpen)}
+            className="flex-1 text-start text-lg font-semibold text-purple-800 hover:text-purple-900 transition-colors"
+          >
+            Broadcast
+          </button>
+          <button
+            onClick={() => setBroadcastSectionOpen(!broadcastSectionOpen)}
+            className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+          >
+            {broadcastSectionOpen ? "▼" : "▶"}
+          </button>
+        </div>
+
+        {broadcastSectionOpen && (
+          <div className="px-4 pb-4">
+            {/* Subscriber List with Data Attributes */}
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-300">
+              <h2 className="text-sm font-semibold mb-2 text-blue-800">📋 Subscriber List with Data Attributes</h2>
+              {subscribersLoading ? (
+                <div className="text-xs text-gray-500">Loading subscribers...</div>
+              ) : (
+                <>
+                  <div className="text-xs font-semibold text-blue-700 mb-3">Total: {subscriberlist.length} subscribers</div>
+                  {subscriberlist.length === 0 ? (
+                    <div className="text-xs text-gray-500">No subscribers found</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {subscriberlist.map((sub, index) => (
+                        <div
+                          key={index}
+                          className="p-2 bg-white rounded border border-blue-200 text-xs"
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1">
+                              <div className="font-mono text-blue-600 mb-1">{sub.subscriberId}</div>
+                              <div className="text-gray-600">{sub.email}</div>
+                              {sub.firstName && (
+                                <div className="text-gray-500">
+                                  {sub.firstName} {sub.lastName}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-gray-700 font-semibold mb-1">Data Attributes:</div>
+                              {sub.data && Object.keys(sub.data).length > 0 ? (
+                                <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto">{JSON.stringify(sub.data, null, 2)}</pre>
+                              ) : (
+                                <div className="text-red-500 text-xs">⚠️ No data attributes</div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => setUpdateSubscriberId(sub.subscriberId)}
+                              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Update Subscriber Data Section */}
+            <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-300">
+              <h2 className="text-sm font-semibold mb-2 text-yellow-800">⚠️ Update Subscriber Data (Required for Filters)</h2>
+              <p className="text-xs text-gray-600 mb-3">Broadcast filters ต้องเช็คกับ subscriber data attributes. ต้อง update subscriber data ก่อนถึงจะ filter ได้</p>
+
+              <div className="mb-3">
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Subscriber ID</label>
+                <input
+                  type="text"
+                  value={updateSubscriberId}
+                  onChange={(e) => setUpdateSubscriberId(e.target.value)}
+                  placeholder="e.g., 895c2ec2-35a5-4f35-94e3-556652bde8e1"
+                  className="px-3 py-2 text-xs border border-gray-300 rounded w-full font-mono"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Data Attributes (JSON)</label>
+                <textarea
+                  value={updateSubscriberData}
+                  onChange={(e) => setUpdateSubscriberData(e.target.value)}
+                  placeholder='{\n  "color": "pink"\n}'
+                  className="px-3 py-2 text-xs border border-gray-300 rounded w-full font-mono"
+                  rows={4}
+                />
+                <p className="text-xs text-gray-500 mt-1">ตัวอย่าง: {`{ "color": "pink", "isLynEmail": true }`}</p>
+              </div>
+
+              <button
+                onClick={updateSubscriberDataAttributes}
+                disabled={updateSubscriberLoading}
+                className="w-full px-4 py-2 text-sm bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                {updateSubscriberLoading ? "Updating..." : "Update Subscriber Data"}
+              </button>
+
+              {updateSubscriberResult && (
+                <div className="mt-3">
+                  <span className={`text-xs ${updateSubscriberResult.success ? "text-green-600" : "text-red-600"}`}>
+                    {updateSubscriberResult.success ? `✓ ${updateSubscriberResult.message}` : `✗ ${updateSubscriberResult.error}`}
+                  </span>
+                  <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[150px]">{JSON.stringify(updateSubscriberResult, null, 2)}</pre>
+                </div>
+              )}
+            </div>
+
+            <hr className="my-5 border-purple-300" />
+
+            <h2 className="text-sm font-semibold mb-3 text-purple-800">Trigger Broadcast with Filters</h2>
+
+            {/* Workflow Name Input */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Workflow Name</label>
+              <input
+                type="text"
+                value={broadcastName}
+                onChange={(e) => setBroadcastName(e.target.value)}
+                placeholder="color-workflow"
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full font-mono"
+              />
+            </div>
+
+            {/* Title Input */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Title</label>
+              <input
+                type="text"
+                value={broadcastTitle}
+                onChange={(e) => setBroadcastTitle(e.target.value)}
+                placeholder="Pink alert 💗"
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
+              />
+            </div>
+
+            {/* Message Input */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Message</label>
+              <textarea
+                value={broadcastMessage}
+                onChange={(e) => setBroadcastMessage(e.target.value)}
+                placeholder="This message is for pink people only"
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
+                rows={3}
+              />
+            </div>
+
+            {/* Filters List */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-2 block">Filters</label>
+              <div className="space-y-2">
+                {broadcastFilters.map((filter, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-2 items-center p-3 bg-white rounded border border-purple-200"
+                  >
+                    <div className="flex-1 grid grid-cols-3 gap-2">
+                      {/* Key Input */}
+                      <div>
+                        <label className="text-xs text-gray-600 mb-1 block">Key</label>
+                        <input
+                          type="text"
+                          value={filter.key}
+                          onChange={(e) => updateBroadcastFilter(index, "key", e.target.value)}
+                          placeholder="color"
+                          className="px-2 py-1.5 text-xs border border-gray-300 rounded w-full font-mono"
+                        />
+                      </div>
+                      {/* Operator Select */}
+                      <div>
+                        <label className="text-xs text-gray-600 mb-1 block">Operator</label>
+                        <select
+                          value={filter.operator}
+                          onChange={(e) => updateBroadcastFilter(index, "operator", e.target.value)}
+                          className="px-2 py-1.5 text-xs border border-gray-300 rounded w-full"
+                        >
+                          <option value="EQUAL">EQUAL</option>
+                          <option value="NOT_EQUAL">NOT_EQUAL</option>
+                          <option value="IN">IN</option>
+                          <option value="NOT_IN">NOT_IN</option>
+                          <option value="LARGER">LARGER</option>
+                          <option value="SMALLER">SMALLER</option>
+                        </select>
+                      </div>
+                      {/* Value Input */}
+                      <div>
+                        <label className="text-xs text-gray-600 mb-1 block">Value</label>
+                        <input
+                          type="text"
+                          value={filter.value}
+                          onChange={(e) => updateBroadcastFilter(index, "value", e.target.value)}
+                          placeholder="pink"
+                          className="px-2 py-1.5 text-xs border border-gray-300 rounded w-full font-mono"
+                        />
+                      </div>
+                    </div>
+                    {broadcastFilters.length > 1 && (
+                      <button
+                        onClick={() => removeBroadcastFilter(index)}
+                        className="px-3 py-2 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={addBroadcastFilter}
+                className="mt-2 px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+              >
+                + Add Filter
+              </button>
+            </div>
+
+            {/* Request Preview */}
+            <div className="mb-3 p-3 bg-gray-100 rounded">
+              <h3 className="font-semibold text-xs mb-2 text-gray-700">Request Body:</h3>
+              <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[200px]">
+                {JSON.stringify(
+                  {
+                    name: broadcastName,
+                    filters: broadcastFilters.filter((f) => f.key && f.value),
+                    payload: {
+                      title: broadcastTitle,
+                      message: broadcastMessage,
+                    },
+                  },
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+
+            {/* Trigger Button */}
+            <button
+              onClick={triggerBroadcast}
+              disabled={broadcastLoading}
+              className="w-full px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {broadcastLoading ? "Broadcasting..." : "Trigger Broadcast"}
+            </button>
+
+            {/* Result */}
+            {broadcastResult && (
+              <div className="mt-3">
+                <span className={`text-xs ${broadcastResult.success ? "text-green-600" : "text-red-600"}`}>
+                  {broadcastResult.success ? `✓ ${broadcastResult.message}` : `✗ ${broadcastResult.error}`}
+                </span>
+                <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[150px]">{JSON.stringify(broadcastResult, null, 2)}</pre>
               </div>
             )}
           </div>
