@@ -89,9 +89,6 @@ export default function Home() {
 
   // Broadcast state by sub.data
   const [broadcastSectionOpen, setBroadcastSectionOpen] = useState(true);
-  const [broadcastName, setBroadcastName] = useState("in-app-demo-filters");
-  const [broadcastTitle, setBroadcastTitle] = useState("Broadcast Title");
-  const [broadcastMessage, setBroadcastMessage] = useState("This is a broadcast message");
   const [broadcastColor, setBroadcastColor] = useState("pink");
   const [broadcastLoading, setBroadcastLoading] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState<any>(null);
@@ -1004,43 +1001,7 @@ export default function Home() {
 
             <hr className="my-5 border-purple-300" />
 
-            <h2 className="text-sm font-semibold mb-3 text-purple-800">Trigger Broadcast with Filters</h2>
-
-            {/* Workflow Name Input */}
-            <div className="mb-3">
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Workflow Name</label>
-              <input
-                type="text"
-                value={broadcastName}
-                onChange={(e) => setBroadcastName(e.target.value)}
-                placeholder="color-workflow"
-                className="px-3 py-2 text-sm border border-gray-300 rounded w-full font-mono"
-              />
-            </div>
-
-            {/* Title Input */}
-            <div className="mb-3">
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Title</label>
-              <input
-                type="text"
-                value={broadcastTitle}
-                onChange={(e) => setBroadcastTitle(e.target.value)}
-                placeholder="Pink alert 💗"
-                className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
-              />
-            </div>
-
-            {/* Message Input */}
-            <div className="mb-3">
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Message</label>
-              <textarea
-                value={broadcastMessage}
-                onChange={(e) => setBroadcastMessage(e.target.value)}
-                placeholder="This message is for pink people only"
-                className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
-                rows={3}
-              />
-            </div>
+            <h2 className="text-sm font-semibold mb-3 text-purple-800">Broadcast with Subscriber data condition</h2>
 
             {/* Color Filter Input */}
             <div className="mb-3">
@@ -1061,11 +1022,9 @@ export default function Home() {
               <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[200px]">
                 {JSON.stringify(
                   {
-                    name: broadcastName,
+                    name: "in-app-demo-filters",
                     payload: {
                       color: broadcastColor,
-                      title: broadcastTitle,
-                      message: broadcastMessage,
                     },
                   },
                   null,
@@ -1101,9 +1060,9 @@ export default function Home() {
         <div className="flex gap-2 p-2">
           <button
             onClick={() => setBroadcastConditionOpen(!broadcastConditionOpen)}
-            className="flex-1 text-start text-lg font-semibold text-indigo-800 hover:text-indigo-900 transition-colors"
+            className="flex-1 text-start text-mg font-semibold text-indigo-800 hover:text-indigo-900 transition-colors"
           >
-            Broadcast with Condition
+            Broadcast with payload condition
           </button>
         </div>
 
@@ -1112,7 +1071,7 @@ export default function Home() {
             <p className="text-xs text-indigo-700 mb-3">Workflow with condition-based filtering (in-app-demo-broadcast-condition)</p>
 
             {/* Workflow Name */}
-            <div className="mb-3">
+            {/* <div className="mb-3">
               <label className="text-xs font-medium text-gray-700 mb-1 block">Workflow Name</label>
               <input
                 type="text"
@@ -1121,7 +1080,7 @@ export default function Home() {
                 placeholder="in-app-demo-broadcast-condition"
                 className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
               />
-            </div>
+            </div> */}
 
             {/* SellCount Input */}
             <div className="mb-3">
