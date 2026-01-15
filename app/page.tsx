@@ -90,9 +90,9 @@ export default function Home() {
   // Broadcast state
   const [broadcastSectionOpen, setBroadcastSectionOpen] = useState(true);
   const [broadcastName, setBroadcastName] = useState("in-app-demo-filters");
+  const [broadcastColor, setBroadcastColor] = useState("pink");
   const [broadcastTitle, setBroadcastTitle] = useState("Pink alert");
   const [broadcastMessage, setBroadcastMessage] = useState("This message is for pink people only");
-  const [broadcastFilters, setBroadcastFilters] = useState([{ key: "color", operator: "EQUAL", value: "pink" }]);
   const [broadcastLoading, setBroadcastLoading] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState<any>(null);
 
@@ -265,21 +265,7 @@ export default function Home() {
     }
   };
 
-  // Broadcast functions
-  const addBroadcastFilter = () => {
-    setBroadcastFilters([...broadcastFilters, { key: "", operator: "EQUAL", value: "" }]);
-  };
-
-  const removeBroadcastFilter = (index: number) => {
-    setBroadcastFilters(broadcastFilters.filter((_, i) => i !== index));
-  };
-
-  const updateBroadcastFilter = (index: number, field: string, value: string) => {
-    const newFilters = [...broadcastFilters];
-    newFilters[index] = { ...newFilters[index], [field]: value };
-    setBroadcastFilters(newFilters);
-  };
-
+  // Broadcast function
   const triggerBroadcast = async () => {
     setBroadcastLoading(true);
     try {
@@ -290,8 +276,8 @@ export default function Home() {
         },
         body: JSON.stringify({
           name: broadcastName,
-          filters: broadcastFilters.filter((f) => f.key && f.value),
           payload: {
+            color: broadcastColor,
             title: broadcastTitle,
             message: broadcastMessage,
           },
@@ -994,72 +980,17 @@ export default function Home() {
               />
             </div>
 
-            {/* Filters List */}
+            {/* Color Filter Input */}
             <div className="mb-3">
-              <label className="text-xs font-medium text-gray-700 mb-2 block">Filters</label>
-              <div className="space-y-2">
-                {broadcastFilters.map((filter, index) => (
-                  <div
-                    key={index}
-                    className="flex gap-2 items-center p-3 bg-white rounded border border-purple-200"
-                  >
-                    <div className="flex-1 grid grid-cols-3 gap-2">
-                      {/* Key Input */}
-                      <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Key</label>
-                        <input
-                          type="text"
-                          value={filter.key}
-                          onChange={(e) => updateBroadcastFilter(index, "key", e.target.value)}
-                          placeholder="color"
-                          className="px-2 py-1.5 text-xs border border-gray-300 rounded w-full font-mono"
-                        />
-                      </div>
-                      {/* Operator Select */}
-                      <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Operator</label>
-                        <select
-                          value={filter.operator}
-                          onChange={(e) => updateBroadcastFilter(index, "operator", e.target.value)}
-                          className="px-2 py-1.5 text-xs border border-gray-300 rounded w-full"
-                        >
-                          <option value="EQUAL">EQUAL</option>
-                          <option value="NOT_EQUAL">NOT_EQUAL</option>
-                          <option value="IN">IN</option>
-                          <option value="NOT_IN">NOT_IN</option>
-                          <option value="LARGER">LARGER</option>
-                          <option value="SMALLER">SMALLER</option>
-                        </select>
-                      </div>
-                      {/* Value Input */}
-                      <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Value</label>
-                        <input
-                          type="text"
-                          value={filter.value}
-                          onChange={(e) => updateBroadcastFilter(index, "value", e.target.value)}
-                          placeholder="pink"
-                          className="px-2 py-1.5 text-xs border border-gray-300 rounded w-full font-mono"
-                        />
-                      </div>
-                    </div>
-                    {broadcastFilters.length > 1 && (
-                      <button
-                        onClick={() => removeBroadcastFilter(index)}
-                        className="px-3 py-2 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={addBroadcastFilter}
-                className="mt-2 px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-              >
-                + Add Filter
-              </button>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Filter by Color</label>
+              <input
+                type="text"
+                value={broadcastColor}
+                onChange={(e) => setBroadcastColor(e.target.value)}
+                placeholder="pink, blue, red, etc."
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">จะส่งไปแค่ subscribers ที่มี data.color ตรงกับค่านี้ (ว่างไว้ = ส่งทุกคน)</p>
             </div>
 
             {/* Request Preview */}
@@ -1069,8 +1000,8 @@ export default function Home() {
                 {JSON.stringify(
                   {
                     name: broadcastName,
-                    filters: broadcastFilters.filter((f) => f.key && f.value),
                     payload: {
+                      color: broadcastColor,
                       title: broadcastTitle,
                       message: broadcastMessage,
                     },
