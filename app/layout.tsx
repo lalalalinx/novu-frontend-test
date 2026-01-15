@@ -91,8 +91,13 @@ function InboxWithBell({
 }) {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showCustomNotifications, setShowCustomNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const currentSubscriber = subscribers.find((sub) => sub.id === selectedSubscriber) || subscribers[1];
+
+  // Use Novu's useNotifications hook to get notifications data
+  const { notifications } = useNotifications();
 
   const handleNotificationClick = (notification: any) => {
     console.log("🖱️ Notification clicked:", notification);
@@ -106,6 +111,26 @@ function InboxWithBell({
     }
   };
 
+  const getNotificationIcon = (tags: string[]) => {
+    if (!tags) return "";
+    for (const key in tagsMap) {
+      const hasMatch = tags.some((tag: string) => tagsMap[key].tags.includes(tag));
+      if (hasMatch) return tagsMap[key].icon;
+    }
+    return "";
+  };
+
+  const getSubjectStyle = (tags: string[]) => {
+    if (!tags) return "text-pink-500";
+    for (const key in tagsMap) {
+      const hasMatch = tags.some((tag: string) => tagsMap[key].tags.includes(tag));
+      if (hasMatch && tagsMap[key].subjectTextStyle) {
+        return tagsMap[key].subjectTextStyle;
+      }
+    }
+    return "text-pink-500";
+  };
+
   return (
     <>
       <button
@@ -114,6 +139,133 @@ function InboxWithBell({
       >
         {isDarkMode ? "Dark Mode" : "Light Mode"}
       </button>
+
+      {/* Custom Notifications Button */}
+      <div className="relative">
+        <button
+          onClick={() => setShowCustomNotifications(!showCustomNotifications)}
+          className="relative px-4 py-2 text-sm rounded-lg transition-all font-medium bg-purple-400 text-white hover:bg-pink-400"
+        >
+          🔔 Notifications
+          {unreadCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">{unreadCount}</span>}
+        </button>
+
+        {/* Custom Notifications Dropdown */}
+        {showCustomNotifications && (
+          <div className="absolute top-full mt-2 right-0 w-[400px] max-h-[600px] overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-2xl z-50">
+            <div className="sticky top-0 bg-gradient-to-r from-pink-400 to-purple-400 text-white px-4 py-3 font-semibold text-sm flex justify-between items-center">
+              <span>Notifications ({unreadCount})</span>
+              <button
+                onClick={() => setShowCustomNotifications(false)}
+                className="text-white hover:text-gray-200 text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {notifications && notifications.length > 0 ? (
+              <div className="divide-y divide-gray-200">
+                {notifications.map((notif: any) => {
+                  const icon = getNotificationIcon(notif.tags);
+                  const subjectStyle = getSubjectStyle(notif.tags);
+                  const bodyText = (notif.body || "")
+                    .replace(/\\n/g, "\n")
+                    .replace(/{image link:.*?}/, "")
+                    .trim();
+                  const imageLink = (notif.body || "").split("{image link:")[1]?.split("}")[0]?.trim();
+
+                  return (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      className="p-4 hover:bg-pink-50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex gap-3">
+                        {/* Avatar */}
+                        <div className="flex-shrink-0">
+                          {notif?.body?.toLowerCase().includes("ikp") ? (
+                            <img
+                              src="https://www.iknowplus.co.th/favicon.ico"
+                              alt="IKP avatar"
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : notif.avatar ? (
+                            <img
+                              src={notif.avatar}
+                              alt="Avatar"
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                              {notif.actor?.name?.charAt(0).toUpperCase() || "?"}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <strong className={`${subjectStyle} text-sm`}>
+                            {icon && `${icon} `}
+                            {notif.subject}
+                          </strong>
+                          <p className="text-gray-700 text-xs mt-1 whitespace-pre-line">{bodyText}</p>
+
+                          {/* Image */}
+                          {notif?.tags?.includes("image") && imageLink && (
+                            <div className="mt-2">
+                              <img
+                                src={imageLink}
+                                alt="Notification"
+                                className="rounded-lg max-h-32 object-cover"
+                              />
+                            </div>
+                          )}
+
+                          {/* Actions */}
+                          {(notif.primaryAction || notif.secondaryAction) && (
+                            <div className="flex gap-2 mt-3">
+                              {notif.secondaryAction && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log("Secondary action clicked");
+                                  }}
+                                  style={secondaryButtonStyle}
+                                >
+                                  {notif.secondaryAction.label}
+                                </button>
+                              )}
+                              {notif.primaryAction && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log("Primary action clicked");
+                                  }}
+                                  style={primaryButtonStyle}
+                                >
+                                  {notif.primaryAction.label}
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          <span className="text-xs text-gray-400 mt-2 block">{new Date(notif.createdAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-gray-500">
+                <div className="text-4xl mb-2">📭</div>
+                <p>No notifications</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="flex items-center gap-1">
         <div className="relative inline-block">
           <button
@@ -147,6 +299,7 @@ function InboxWithBell({
           onNotificationClick={handleNotificationClick}
           renderBell={(props: any) => {
             console.log("🔔 renderBell - total:", props?.total);
+            setUnreadCount(props?.total || 0);
             return (
               <BellComponent
                 unreadCount={props?.total || 0}
