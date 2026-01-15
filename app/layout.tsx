@@ -43,6 +43,27 @@ const tagsMap: {
   },
 };
 
+const primaryButtonStyle = {
+  border: "none",
+  padding: "5px 10px",
+  borderRadius: "7px",
+  cursor: "pointer",
+  fontSize: "12px",
+  background: "#FB4CA3",
+  color: "white",
+  boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+};
+
+const secondaryButtonStyle = {
+  border: "none",
+  padding: "5px 10px",
+  borderRadius: "7px",
+  cursor: "pointer",
+  fontSize: "12px",
+  background: "#00B698",
+  color: "#ffffff",
+};
+
 function BellComponent({ unreadCount, subscriberName }: { unreadCount?: number; subscriberName?: string }) {
   const hasUnread = typeof unreadCount === "number" && unreadCount > 0;
 
@@ -59,13 +80,13 @@ function BellComponent({ unreadCount, subscriberName }: { unreadCount?: number; 
   );
 }
 
-function InboxWithBell({ 
-  selectedSubscriber, 
-  setSelectedSubscriber, 
-  subscribers 
-}: { 
-  selectedSubscriber: string; 
-  setSelectedSubscriber: (id: string) => void; 
+function InboxWithBell({
+  selectedSubscriber,
+  setSelectedSubscriber,
+  subscribers,
+}: {
+  selectedSubscriber: string;
+  setSelectedSubscriber: (id: string) => void;
   subscribers: Array<{ id: string; name: string }>;
 }) {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -224,6 +245,14 @@ function InboxWithBell({
             const initials = notification.actor?.name?.charAt(0).toUpperCase() || notification.subscriber?.firstName?.charAt(0).toUpperCase() || "?";
             return <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0">{initials}</div>;
           }}
+          renderCustomActions={(notification: any) => {
+            return (
+              <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+                {notification.secondaryAction && <button style={secondaryButtonStyle}>{notification.secondaryAction.label}</button>}
+                {notification.primaryAction && <button style={primaryButtonStyle}>{notification.primaryAction.label}</button>}
+              </div>
+            );
+          }}
         />
       </div>
     </>
@@ -271,7 +300,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           subscriberId={selectedSubscriber}
         >
           <nav className="sticky top-0 z-50 bg-foreground text-white flex justify-between items-center py-4 pr-2 pl-4 gap-4 h-16 shadow-md">
-            <InboxWithBell 
+            <InboxWithBell
               selectedSubscriber={selectedSubscriber}
               setSelectedSubscriber={setSelectedSubscriber}
               subscribers={subscribers}
