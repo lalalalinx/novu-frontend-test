@@ -87,20 +87,34 @@ export default function Home() {
   const [digestLoading, setDigestLoading] = useState(false);
   const [digestResult, setDigestResult] = useState<any>(null);
 
-  // Broadcast state
+  // Broadcast state by sub.data
   const [broadcastSectionOpen, setBroadcastSectionOpen] = useState(true);
   const [broadcastName, setBroadcastName] = useState("in-app-demo-filters");
+  const [broadcastTitle, setBroadcastTitle] = useState("Broadcast Title");
+  const [broadcastMessage, setBroadcastMessage] = useState("This is a broadcast message");
   const [broadcastColor, setBroadcastColor] = useState("pink");
-  const [broadcastTitle, setBroadcastTitle] = useState("Pink alert");
-  const [broadcastMessage, setBroadcastMessage] = useState("This message is for pink people only");
   const [broadcastLoading, setBroadcastLoading] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState<any>(null);
+
+  // Broadcast state by payload
+  const [sellCount, setSellCount] = useState(7);
+  const [broadcast2Loading, setBroadcast2Loading] = useState(false);
+  const [broadcast2Result, setBroadcast2Result] = useState<any>(null);
+
+  // Broadcast with Condition Section state
+  const [broadcastConditionOpen, setBroadcastConditionOpen] = useState(true);
 
   // Update subscriber data state
   const [updateSubscriberId, setUpdateSubscriberId] = useState("");
   const [updateSubscriberData, setUpdateSubscriberData] = useState('{\n  "color": "pink"\n}');
   const [updateSubscriberLoading, setUpdateSubscriberLoading] = useState(false);
   const [updateSubscriberResult, setUpdateSubscriberResult] = useState<any>(null);
+
+  // Broadcast with Condition state
+  const [broadcastConditionName, setBroadcastConditionName] = useState("in-app-demo-broadcast-condition");
+  const [broadcastConditionSellCount, setBroadcastConditionSellCount] = useState<number>(100);
+  const [broadcastConditionLoading, setBroadcastConditionLoading] = useState(false);
+  const [broadcastConditionResult, setBroadcastConditionResult] = useState<any>(null);
 
   // Fetch subscribers on mount
   useEffect(() => {
@@ -265,8 +279,8 @@ export default function Home() {
     }
   };
 
-  // Broadcast function
-  const triggerBroadcast = async () => {
+  // Broadcast function filter sub
+  const triggerBroadcastFilterSubData = async () => {
     setBroadcastLoading(true);
     try {
       const response = await fetch("/api/broadcast", {
@@ -275,11 +289,34 @@ export default function Home() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: broadcastName,
+          name: "in-app-demo-filters",
           payload: {
             color: broadcastColor,
-            title: broadcastTitle,
-            message: broadcastMessage,
+          },
+        }),
+      });
+      const data = await response.json();
+      setBroadcastResult(data);
+    } catch (error) {
+      setBroadcastResult({ success: false, error: String(error) });
+    } finally {
+      setBroadcastLoading(false);
+    }
+  };
+
+  // Broadcast function filter payload
+  const triggerBroadcastFilterPayload = async () => {
+    setBroadcastLoading(true);
+    try {
+      const response = await fetch("/api/broadcast", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "in-app-demo-broadcast-condition",
+          payload: {
+            sellCount: sellCount,
           },
         }),
       });
@@ -320,6 +357,31 @@ export default function Home() {
       setUpdateSubscriberResult({ success: false, error: String(error) });
     } finally {
       setUpdateSubscriberLoading(false);
+    }
+  };
+
+  // Broadcast with Condition function
+  const triggerBroadcastCondition = async () => {
+    setBroadcastConditionLoading(true);
+    try {
+      const response = await fetch("/api/broadcast", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: broadcastConditionName,
+          payload: {
+            sellCount: broadcastConditionSellCount,
+          },
+        }),
+      });
+      const data = await response.json();
+      setBroadcastConditionResult(data);
+    } catch (error) {
+      setBroadcastConditionResult({ success: false, error: String(error) });
+    } finally {
+      setBroadcastConditionLoading(false);
     }
   };
 
@@ -1014,7 +1076,7 @@ export default function Home() {
 
             {/* Trigger Button */}
             <button
-              onClick={triggerBroadcast}
+              onClick={triggerBroadcastFilterSubData}
               disabled={broadcastLoading}
               className="w-full px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
             >
@@ -1028,6 +1090,85 @@ export default function Home() {
                   {broadcastResult.success ? `✓ ${broadcastResult.message}` : `✗ ${broadcastResult.error}`}
                 </span>
                 <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[150px]">{JSON.stringify(broadcastResult, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Broadcast with Condition Section */}
+      <div className="mb-5 bg-indigo-50 rounded-lg border border-indigo-200">
+        <div className="flex gap-2 p-2">
+          <button
+            onClick={() => setBroadcastConditionOpen(!broadcastConditionOpen)}
+            className="flex-1 text-start text-lg font-semibold text-indigo-800 hover:text-indigo-900 transition-colors"
+          >
+            Broadcast with Condition
+          </button>
+        </div>
+
+        {broadcastConditionOpen && (
+          <div className="p-4 pt-2">
+            <p className="text-xs text-indigo-700 mb-3">Workflow with condition-based filtering (in-app-demo-broadcast-condition)</p>
+
+            {/* Workflow Name */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Workflow Name</label>
+              <input
+                type="text"
+                value={broadcastConditionName}
+                onChange={(e) => setBroadcastConditionName(e.target.value)}
+                placeholder="in-app-demo-broadcast-condition"
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
+              />
+            </div>
+
+            {/* SellCount Input */}
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Sell Count</label>
+              <input
+                type="number"
+                value={broadcastConditionSellCount}
+                onChange={(e) => setBroadcastConditionSellCount(Number(e.target.value))}
+                placeholder="100"
+                className="px-3 py-2 text-sm border border-gray-300 rounded w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">จำนวนสินค้าที่ขายได้ (ใช้ filter ใน workflow condition)</p>
+            </div>
+
+            {/* Request Preview */}
+            <div className="mb-3 p-3 bg-gray-100 rounded">
+              <h3 className="font-semibold text-xs mb-2 text-gray-700">Request Body:</h3>
+              <pre className="overflow-auto text-xs p-2 bg-white rounded max-h-[200px]">
+                {JSON.stringify(
+                  {
+                    name: broadcastConditionName,
+                    payload: {
+                      sellCount: broadcastConditionSellCount,
+                    },
+                  },
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+
+            {/* Trigger Button */}
+            <button
+              onClick={triggerBroadcastCondition}
+              disabled={broadcastConditionLoading}
+              className="w-full px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {broadcastConditionLoading ? "Broadcasting..." : "Trigger Broadcast with Condition"}
+            </button>
+
+            {/* Result */}
+            {broadcastConditionResult && (
+              <div className="mt-3">
+                <span className={`text-xs ${broadcastConditionResult.success ? "text-green-600" : "text-red-600"}`}>
+                  {broadcastConditionResult.success ? `✓ ${broadcastConditionResult.message}` : `✗ ${broadcastConditionResult.error}`}
+                </span>
+                <pre className="mt-2 text-xs p-2 bg-white rounded border border-gray-200 overflow-auto max-h-[150px]">{JSON.stringify(broadcastConditionResult, null, 2)}</pre>
               </div>
             )}
           </div>
