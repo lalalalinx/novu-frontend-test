@@ -6,15 +6,15 @@ const novu = new Novu(process.env.NOVU_SECRET_KEY as string);
 export async function GET(request: NextRequest) {
   try {
     const response = await novu.subscribers.list();
-    
+
     // Handle different response structures
     let subscriberData = [];
-    
-    if (response && typeof response === 'object') {
+
+    if (response && typeof response === "object") {
       // Check if data is directly an array
       if (Array.isArray(response.data)) {
         subscriberData = response.data;
-      } 
+      }
       // Check if data.data is an array (nested structure)
       else if (response.data && Array.isArray(response.data.data)) {
         subscriberData = response.data.data;
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('Fetched subscribers:', subscriberData.length);
+    console.log("Fetched subscribers:", subscriberData.length);
 
     return NextResponse.json({
       success: true,
