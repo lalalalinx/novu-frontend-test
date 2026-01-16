@@ -249,6 +249,42 @@ function InboxWithBell({
                             </div>
                           )}
 
+                          {/* Mark as Read & Archive Actions */}
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  await notif.read();
+                                  console.log("✓ Marked as read:", notif.id);
+                                } catch (error) {
+                                  console.error("Error marking as read:", error);
+                                }
+                              }}
+                              className="flex items-center gap-1 px-2 py-1 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors"
+                              title="Mark as read"
+                            >
+                              <Check className="w-3 h-3" />
+                              <span>Read</span>
+                            </button>
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  await notif.archive();
+                                  console.log("📦 Archived:", notif.id);
+                                } catch (error) {
+                                  console.error("Error archiving:", error);
+                                }
+                              }}
+                              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                              title="Archive"
+                            >
+                              <Archive className="w-3 h-3" />
+                              <span>Archive</span>
+                            </button>
+                          </div>
+
                           <span className="text-xs text-gray-400 mt-2 block">{new Date(notif.createdAt).toLocaleString()}</span>
                         </div>
                       </div>
@@ -297,6 +333,42 @@ function InboxWithBell({
           subscriberId={selectedSubscriber}
           appearance={isDarkMode ? { baseTheme: dark } : {}}
           onNotificationClick={handleNotificationClick}
+          renderDefaultActions={(notification: any) => {
+            return (
+              <div className="flex gap-2">
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await notification.read();
+                      console.log("✓ Marked as read:", notification.id);
+                    } catch (error) {
+                      console.error("Error marking as read:", error);
+                    }
+                  }}
+                  className="p-1 text-green-600 hover:text-green-800"
+                  title="Mark as read"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await notification.archive();
+                      console.log("📦 Archived:", notification.id);
+                    } catch (error) {
+                      console.error("Error archiving:", error);
+                    }
+                  }}
+                  className="p-1 text-gray-500 hover:text-gray-700"
+                  title="Archive"
+                >
+                  <Archive className="w-4 h-4" />
+                </button>
+              </div>
+            );
+          }}
           renderBell={(props: any) => {
             console.log("🔔 renderBell - total:", props?.total);
             setUnreadCount(props?.total || 0);
